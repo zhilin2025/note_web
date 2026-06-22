@@ -9,10 +9,14 @@
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; }
 
 /* 导航 */
-.nav-tabs { display: flex; background: #fff; border-bottom: 2px solid #e0e0e0; padding: 0 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.nav-tabs { display: flex; align-items: center; background: #fff; border-bottom: 2px solid #e0e0e0; padding: 0 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 .nav-tab { padding: 14px 28px; cursor: pointer; font-size: 15px; font-weight: 500; color: #666; border-bottom: 3px solid transparent; transition: all 0.2s; user-select: none; }
 .nav-tab:hover { color: #1a73e8; background: #f5f8ff; }
 .nav-tab.active { color: #1a73e8; border-bottom-color: #1a73e8; font-weight: 600; }
+.nav-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.nav-data-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; border: 1px solid #c8d6e5; background: #fff; color: #555; transition: all 0.2s; }
+.nav-data-btn:hover { border-color: #1a73e8; color: #1a73e8; background: #f0f6ff; }
+.nav-data-btn.export-btn:hover { border-color: #27ae60; color: #27ae60; background: #f0fff4; }
 
 /* 页面容器 */
 .page { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
@@ -124,6 +128,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 
 /* 空状态 */
 .empty-state { text-align: center; padding: 30px 20px; color: #aaa; font-size: 14px; }
+.import-hint { text-align: center; padding: 12px; margin: 10px 20px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; color: #8d6e00; font-size: 13px; display: none; }
+.import-hint a { color: #1a73e8; cursor: pointer; text-decoration: underline; }
 
 /* 响应式 */
 @media (max-width: 900px) {
@@ -138,10 +144,18 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 <div class="nav-tabs">
   <div class="nav-tab active" data-page="home" onclick="switchPage('home')">首页</div>
   <div class="nav-tab" data-page="projects" onclick="switchPage('projects')">项目管理页</div>
+  <div class="nav-right">
+    <button class="nav-data-btn export-btn" onclick="exportData()" title="导出全部数据为JSON文件，保存到本文件夹">📥 导出数据</button>
+    <button class="nav-data-btn" onclick="document.getElementById('import-file').click()" title="从JSON文件导入数据恢复">📤 导入数据</button>
+    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)" />
+  </div>
 </div>
 
 <!-- 首页 -->
 <div id="page-home" class="page active">
+  <div class="import-hint" id="import-hint">
+    💡 当前为空数据，如果你之前导出过数据文件，可以点击右上角 <b>📤 导入数据</b> 一键恢复。
+  </div>
   <div class="home-columns">
     <!-- 左侧：职业方向&技术栈 -->
     <div class="note-column">
@@ -768,6 +782,88 @@ function escHtml(str) {
   return div.innerHTML;
 }
 
+// ========== 导出 / 导入 ==========
+async function exportData() {
+  // 确保最新数据已保存
+  saveHome();
+  saveProjects();
+
+  // 收集全部数据
+  const exportObj = {
+    _meta: { version: 1, exportedAt: new Date().toISOString(), app: 'NotesApp' },
+    home: homeData,
+    projects: projectsData
+  };
+
+  const json = JSON.stringify(exportObj, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  // 文件名带日期方便区分
+  const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  a.download = `notes_data_${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+async function importData(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const data = JSON.parse(text);
+
+    // 基本校验
+    if (!data._meta || data._meta.app !== 'NotesApp') {
+      alert('文件格式不正确，请选择由本应用导出的 JSON 文件。');
+      input.value = '';
+      return;
+    }
+
+    const msg = '导入将覆盖当前所有数据，确定继续吗？\n\n建议先点击"导出数据"备份当前数据。';
+    if (!confirm(msg)) {
+      input.value = '';
+      return;
+    }
+
+    // 恢复首页数据
+    if (data.home) {
+      homeData = { key: 'home', ...data.home };
+      saveHome();
+    }
+
+    // 恢复项目数据
+    if (data.projects && Array.isArray(data.projects)) {
+      projectsData = data.projects;
+      // 清除旧项目记录
+      const tx = db.transaction('projects', 'readwrite');
+      const store = tx.objectStore('projects');
+      store.clear();
+      // 写入新项目
+      projectsData.forEach(p => store.put(p));
+      store.put({ id: '__project_ids__', ids: projectsData.map(p => p.id) });
+    }
+
+    // 重新渲染
+    renderHome();
+    if (projectsData.length > 0) {
+      currentProjectId = projectsData[0].id;
+    }
+    renderProjectTabs();
+
+    alert('数据导入成功！');
+  } catch (e) {
+    alert('导入失败：文件解析错误。\n' + e.message);
+  }
+
+  input.value = '';
+}
+
 // ========== 初始化 ==========
 async function init() {
   await openDB();
@@ -796,6 +892,13 @@ async function init() {
 
   currentProjectId = projectsData[0].id;
   renderProjectTabs();
+
+  // 空数据时显示导入提示
+  const hasData = homeData.career.length || homeData.todos.length || homeData.diaries.length;
+  const hintEl = document.getElementById('import-hint');
+  if (!hasData && projectsData.every(p => !p.milestones.length && !p.devlogs.length && !p.issues.length)) {
+    hintEl.style.display = 'block';
+  }
 }
 
 init();
