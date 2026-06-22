@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>笔记应用</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; }
+
+/* 导航 */
+.nav-tabs { display: flex; background: #fff; border-bottom: 2px solid #e0e0e0; padding: 0 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.nav-tab { padding: 14px 28px; cursor: pointer; font-size: 15px; font-weight: 500; color: #666; border-bottom: 3px solid transparent; transition: all 0.2s; user-select: none; }
+.nav-tab:hover { color: #1a73e8; background: #f5f8ff; }
+.nav-tab.active { color: #1a73e8; border-bottom-color: #1a73e8; font-weight: 600; }
+
+/* 页面容器 */
+.page { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
+.page.active { display: block; }
+
+/* 首页三列布局 */
+.home-columns { display: flex; gap: 20px; align-items: flex-start; }
+.note-column { flex: 1; background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); overflow: hidden; min-width: 0; }
+.column-header { padding: 16px 20px; font-size: 16px; font-weight: 600; color: #fff; background: linear-gradient(135deg, #1a73e8, #4285f4); }
+.column-body { padding: 12px; min-height: 200px; }
+
+/* 卡片 */
+.card { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 10px; position: relative; border: 1px solid #e8eaed; transition: box-shadow 0.2s; }
+.card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.card .delete-btn { position: absolute; top: 6px; right: 8px; cursor: pointer; color: #999; font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 4px; transition: all 0.15s; }
+.card .delete-btn:hover { color: #e53935; background: #fce4ec; }
+
+/* 输入框通用 */
+.card input[type="text"], .card textarea, .card .editable { width: 100%; border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px 10px; font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s; background: #fff; }
+.card input[type="text"]:focus, .card textarea:focus, .card .editable:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.12); }
+.card textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+.card .editable { min-height: 40px; line-height: 1.5; overflow-y: auto; }
+.card .editable img { max-width: 200px; max-height: 150px; border-radius: 4px; margin: 4px 2px; cursor: zoom-in; display: inline-block; vertical-align: middle; }
+
+/* 左侧 - 职业方向&技术栈 */
+.career-title { color: blue; font-weight: bold; font-size: 14px; margin-bottom: 6px; }
+.career-content { color: lightblue; font-weight: normal; font-size: 14px; }
+
+/* 中间 - 代办事项 */
+.todo-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; margin-bottom: 6px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e8eaed; position: relative; }
+.todo-checkbox { width: 22px; height: 22px; border: 2px solid #bbb; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; user-select: none; }
+.todo-checkbox:hover { border-color: #1a73e8; }
+.todo-checkbox.checked { background: #1a73e8; border-color: #1a73e8; }
+.todo-checkbox.checked::after { content: "✓"; color: #fff; font-size: 14px; font-weight: 700; }
+.todo-text { flex: 1; font-size: 14px; min-width: 0; }
+.todo-text.completed { color: #999; }
+.todo-item .delete-btn { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); }
+.todo-input { flex: 1; border: none; outline: none; font-size: 14px; background: transparent; font-family: inherit; }
+.todo-input:focus { border-bottom: 1px solid #1a73e8; }
+
+/* 右侧 - 每日随记 */
+.diary-time { margin-bottom: 6px; }
+.diary-title { margin-bottom: 6px; }
+.diary-content-wrapper { position: relative; }
+.diary-content { min-height: 60px; line-height: 1.6; padding: 8px 10px; }
+.bold-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 28px; background: #e8eaed; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-weight: 900; font-size: 14px; color: #333; margin-top: 4px; transition: all 0.15s; user-select: none; }
+.bold-btn:hover { background: #d0d0d0; }
+.bold-btn:active { background: #bbb; }
+
+/* 添加按钮 */
+.add-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border: 2px dashed #c8d6e5; border-radius: 8px; background: transparent; cursor: pointer; color: #1a73e8; font-size: 14px; font-weight: 500; transition: all 0.2s; margin-top: 6px; }
+.add-btn:hover { border-color: #1a73e8; background: #f0f6ff; }
+
+/* === 项目管理页 === */
+.project-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; padding: 16px; background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); align-items: center; }
+.project-tab { padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 500; color: #555; background: #f0f2f5; border: 2px solid transparent; transition: all 0.2s; user-select: none; }
+.project-tab:hover { background: #e3eeff; color: #1a73e8; }
+.project-tab.active { background: #1a73e8; color: #fff; border-color: #1a73e8; }
+.project-actions { display: flex; gap: 8px; margin-left: auto; }
+.project-action-btn { padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; border: none; transition: all 0.2s; }
+.btn-add-project { background: #1a73e8; color: #fff; }
+.btn-add-project:hover { background: #1558b0; }
+.btn-delete-project { background: #fff; color: #e53935; border: 1px solid #e53935; }
+.btn-delete-project:hover { background: #fce4ec; }
+
+/* 项目三列 */
+.project-columns { display: flex; gap: 20px; align-items: flex-start; }
+.project-column { flex: 1; background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); overflow: hidden; min-width: 0; }
+
+/* 图片区域 */
+.image-gallery { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.image-thumb { position: relative; width: 80px; height: 80px; border-radius: 6px; overflow: hidden; border: 1px solid #e0e0e0; }
+.image-thumb img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+.image-thumb .img-delete { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; opacity: 0; transition: opacity 0.15s; }
+.image-thumb:hover .img-delete { opacity: 1; }
+
+/* 图片灯箱 */
+.lightbox-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; cursor: zoom-out; }
+.lightbox-overlay.show { display: flex; }
+.lightbox-overlay img { max-width: 92vw; max-height: 90vh; border-radius: 6px; box-shadow: 0 4px 32px rgba(0,0,0,0.4); }
+.lightbox-close { position: absolute; top: 16px; right: 20px; color: #fff; font-size: 32px; cursor: pointer; opacity: 0.7; transition: opacity 0.2s; line-height: 1; }
+.lightbox-close:hover { opacity: 1; }
+.upload-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border: 1px solid #c8d6e5; border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px; color: #1a73e8; margin-top: 6px; transition: all 0.2s; }
+.upload-btn:hover { background: #f0f6ff; border-color: #1a73e8; }
+
+/* 项目区列头颜色 */
+.project-column:nth-child(1) .column-header { background: linear-gradient(135deg, #e67e22, #f39c12); }
+.project-column:nth-child(2) .column-header { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+.project-column:nth-child(3) .column-header { background: linear-gradient(135deg, #8e44ad, #9b59b6); }
+
+/* 自动扩展的编辑区 */
+.auto-expand { min-height: 40px; max-height: 300px; overflow-y: auto; word-break: break-word; }
+
+/* 弹窗 */
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal-box { background: #fff; border-radius: 12px; padding: 24px; width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); }
+.modal-box h3 { margin-bottom: 16px; font-size: 16px; }
+.modal-box input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 16px; }
+.modal-box input:focus { border-color: #1a73e8; }
+.modal-btns { display: flex; justify-content: flex-end; gap: 10px; }
+.modal-btn { padding: 8px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; border: none; transition: all 0.15s; }
+.modal-btn-cancel { background: #f0f2f5; color: #666; }
+.modal-btn-cancel:hover { background: #e0e0e0; }
+.modal-btn-confirm { background: #1a73e8; color: #fff; }
+.modal-btn-confirm:hover { background: #1558b0; }
+.modal-btn-danger { background: #e53935; color: #fff; }
+.modal-btn-danger:hover { background: #c62828; }
+
+/* 空状态 */
+.empty-state { text-align: center; padding: 30px 20px; color: #aaa; font-size: 14px; }
+
+/* 响应式 */
+@media (max-width: 900px) {
+  .home-columns, .project-columns { flex-direction: column; }
+  .note-column, .project-column { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<div class="nav-tabs">
+  <div class="nav-tab active" data-page="home" onclick="switchPage('home')">首页</div>
+  <div class="nav-tab" data-page="projects" onclick="switchPage('projects')">项目管理页</div>
+</div>
+
+<!-- 首页 -->
+<div id="page-home" class="page active">
+  <div class="home-columns">
+    <!-- 左侧：职业方向&技术栈 -->
+    <div class="note-column">
+      <div class="column-header">职业方向&技术栈</div>
+      <div class="column-body" id="career-list"></div>
+    </div>
+    <!-- 中间：代办事项 -->
+    <div class="note-column">
+      <div class="column-header">代办事项</div>
+      <div class="column-body" id="todo-list"></div>
+    </div>
+    <!-- 右侧：每日随记 -->
+    <div class="note-column">
+      <div class="column-header">每日随记</div>
+      <div class="column-body" id="diary-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 项目管理页 -->
+<div id="page-projects" class="page">
+  <div class="project-tabs" id="project-tabs-bar">
+    <!-- 动态项目标签 -->
+  </div>
+  <div class="project-columns" id="project-content">
+    <!-- 动态项目内容 -->
+  </div>
+</div>
+
+<!-- 弹窗 -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <h3 id="modal-title"></h3>
+    <input type="text" id="modal-input" placeholder="" />
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">取消</button>
+      <button class="modal-btn modal-btn-confirm" id="modal-confirm">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 确认弹窗 -->
+<div class="modal-overlay" id="confirm-overlay">
+  <div class="modal-box">
+    <h3 id="confirm-title"></h3>
+    <p id="confirm-message" style="margin-bottom:16px;color:#666;font-size:14px;"></p>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeConfirm()">取消</button>
+      <button class="modal-btn modal-btn-danger" id="confirm-ok">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 图片灯箱 -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+  <span class="lightbox-close">&times;</span>
+  <img id="lightbox-img" src="" alt="大图预览" />
+</div>
+
+<script>
+// ========== IndexedDB ==========
+const DB_NAME = 'NotesAppDB';
+const DB_VERSION = 1;
+let db = null;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('home')) db.createObjectStore('home', { keyPath: 'key' });
+      if (!db.objectStoreNames.contains('projects')) db.createObjectStore('projects', { keyPath: 'id' });
+    };
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbGet(store, key) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readonly');
+    const s = tx.objectStore(store);
+    const req = s.get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+function dbPut(store, value) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    const s = tx.objectStore(store);
+    const req = s.put(value);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = (e) => reject(e);
+  });
+}
+
+// ========== 防抖 ==========
+const debounceTimers = {};
+function debounce(key, fn, ms = 300) {
+  if (debounceTimers[key]) clearTimeout(debounceTimers[key]);
+  debounceTimers[key] = setTimeout(() => { fn(); delete debounceTimers[key]; }, ms);
+}
+
+// ========== 数据模型 ==========
+let homeData = {
+  key: 'home',
+  career: [],   // [{id, title, content}]
+  todos: [],    // [{id, text, done}]
+  diaries: []   // [{id, time, title, content(html)}]
+};
+
+let projectsData = []; // [{id, name, milestones:[], devlogs:[], issues:[]}]
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+// ========== 页面切换 ==========
+function switchPage(page) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + page));
+  if (page === 'projects') renderProjectTabs();
+}
+
+// ========== 首页渲染 ==========
+function renderHome() {
+  renderCareer();
+  renderTodos();
+  renderDiaries();
+}
+
+// --- 职业方向&技术栈 ---
+function renderCareer() {
+  const list = document.getElementById('career-list');
+  list.innerHTML = '';
+  homeData.career.forEach((item) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <span class="delete-btn" onclick="deleteCareer('${item.id}')">&times;</span>
+      <input type="text" class="career-title" value="${escHtml(item.title)}" placeholder="标题" oninput="onCareerTitle('${item.id}', this.value)" />
+      <textarea class="career-content" placeholder="内容" oninput="onCareerContent('${item.id}', this.value)">${escHtml(item.content)}</textarea>
+    `;
+    list.appendChild(card);
+  });
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = addCareer;
+  list.appendChild(btn);
+}
+
+function addCareer() {
+  homeData.career.push({ id: uid(), title: '', content: '' });
+  renderCareer();
+  saveHome();
+}
+
+function deleteCareer(id) {
+  homeData.career = homeData.career.filter(i => i.id !== id);
+  renderCareer();
+  saveHome();
+}
+
+function onCareerTitle(id, val) {
+  const item = homeData.career.find(i => i.id === id);
+  if (item) { item.title = val; debounce('career', saveHome); }
+}
+
+function onCareerContent(id, val) {
+  const item = homeData.career.find(i => i.id === id);
+  if (item) { item.content = val; debounce('career', saveHome); }
+}
+
+// --- 代办事项 ---
+function renderTodos() {
+  const list = document.getElementById('todo-list');
+  list.innerHTML = '';
+  homeData.todos.forEach((item) => {
+    const div = document.createElement('div');
+    div.className = 'todo-item';
+    div.innerHTML = `
+      <div class="todo-checkbox ${item.done ? 'checked' : ''}" onclick="toggleTodo('${item.id}')"></div>
+      <input type="text" class="todo-input ${item.done ? 'completed' : ''}" value="${escHtml(item.text)}" placeholder="待办事项" oninput="onTodoText('${item.id}', this.value)" />
+      <span class="delete-btn" onclick="deleteTodo('${item.id}')">&times;</span>
+    `;
+    list.appendChild(div);
+  });
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = addTodo;
+  list.appendChild(btn);
+}
+
+function addTodo() {
+  homeData.todos.push({ id: uid(), text: '', done: false });
+  renderTodos();
+  saveHome();
+}
+
+function deleteTodo(id) {
+  homeData.todos = homeData.todos.filter(i => i.id !== id);
+  renderTodos();
+  saveHome();
+}
+
+function toggleTodo(id) {
+  const item = homeData.todos.find(i => i.id === id);
+  if (item) { item.done = !item.done; renderTodos(); saveHome(); }
+}
+
+function onTodoText(id, val) {
+  const item = homeData.todos.find(i => i.id === id);
+  if (item) { item.text = val; debounce('todo', saveHome); }
+}
+
+// --- 每日随记 ---
+function renderDiaries() {
+  const list = document.getElementById('diary-list');
+  list.innerHTML = '';
+  homeData.diaries.forEach((item) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <span class="delete-btn" onclick="deleteDiary('${item.id}')">&times;</span>
+      <input type="text" class="diary-time" value="${escHtml(item.time)}" placeholder="时间 (如 20260622)" oninput="onDiaryTime('${item.id}', this.value)" />
+      <input type="text" class="diary-title" value="${escHtml(item.title)}" placeholder="标题" oninput="onDiaryTitle('${item.id}', this.value)" />
+      <div class="diary-content-wrapper">
+        <div class="editable diary-content auto-expand" contenteditable="true" placeholder="详细内容" oninput="onDiaryContent('${item.id}', this)">${item.content || ''}</div>
+        <button class="bold-btn" title="加粗 (Ctrl+B)" onclick="boldInDiary('${item.id}', this)">B</button>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = addDiary;
+  list.appendChild(btn);
+}
+
+function addDiary() {
+  homeData.diaries.push({ id: uid(), time: '', title: '', content: '' });
+  renderDiaries();
+  saveHome();
+}
+
+function deleteDiary(id) {
+  homeData.diaries = homeData.diaries.filter(i => i.id !== id);
+  renderDiaries();
+  saveHome();
+}
+
+function onDiaryTime(id, val) {
+  const item = homeData.diaries.find(i => i.id === id);
+  if (item) { item.time = val; debounce('diary', saveHome); }
+}
+
+function onDiaryTitle(id, val) {
+  const item = homeData.diaries.find(i => i.id === id);
+  if (item) { item.title = val; debounce('diary', saveHome); }
+}
+
+function onDiaryContent(id, el) {
+  const item = homeData.diaries.find(i => i.id === id);
+  if (item) { item.content = el.innerHTML; debounce('diary', saveHome); }
+}
+
+function boldInDiary(id, btn) {
+  const card = btn.closest('.card');
+  const editable = card.querySelector('.diary-content');
+  editable.focus();
+  document.execCommand('bold', false, null);
+  const item = homeData.diaries.find(i => i.id === id);
+  if (item) { item.content = editable.innerHTML; debounce('diary-bold', saveHome); }
+}
+
+// Ctrl+B 支持
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+    const active = document.activeElement;
+    if (active && active.classList.contains('diary-content')) {
+      e.preventDefault();
+      document.execCommand('bold', false, null);
+    }
+  }
+});
+
+// ========== 项目管理页 ==========
+let currentProjectId = null;
+
+function renderProjectTabs() {
+  const bar = document.getElementById('project-tabs-bar');
+  bar.innerHTML = '';
+  projectsData.forEach(p => {
+    const tab = document.createElement('div');
+    tab.className = 'project-tab' + (p.id === currentProjectId ? ' active' : '');
+    tab.textContent = p.name;
+    tab.onclick = () => { currentProjectId = p.id; renderProjectTabs(); renderProjectContent(); };
+    bar.appendChild(tab);
+  });
+  const actions = document.createElement('div');
+  actions.className = 'project-actions';
+  actions.innerHTML = `
+    <button class="project-action-btn btn-add-project" onclick="addProject()">+ 添加项目</button>
+    <button class="project-action-btn btn-delete-project" onclick="deleteProject()">删除项目</button>
+  `;
+  bar.appendChild(actions);
+
+  if (!currentProjectId && projectsData.length > 0) {
+    currentProjectId = projectsData[0].id;
+    renderProjectTabs();
+    return;
+  }
+  renderProjectContent();
+}
+
+function renderProjectContent() {
+  const container = document.getElementById('project-content');
+  const project = projectsData.find(p => p.id === currentProjectId);
+  if (!project) {
+    container.innerHTML = '<div class="empty-state">暂无项目，请点击"+ 添加项目"创建</div>';
+    return;
+  }
+  container.innerHTML = `
+    <div class="project-column">
+      <div class="column-header">时间节点</div>
+      <div class="column-body" id="milestone-list"></div>
+    </div>
+    <div class="project-column">
+      <div class="column-header">开发记录</div>
+      <div class="column-body" id="devlog-list"></div>
+    </div>
+    <div class="project-column">
+      <div class="column-header">待解决问题</div>
+      <div class="column-body" id="issue-list"></div>
+    </div>
+  `;
+  renderMilestones(project);
+  renderDevlogs(project);
+  renderIssues(project);
+}
+
+// --- 时间节点 ---
+function renderMilestones(project) {
+  const list = document.getElementById('milestone-list');
+  list.innerHTML = '';
+  project.milestones.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <span class="delete-btn" onclick="deleteMilestone('${project.id}','${m.id}')">&times;</span>
+      <input type="text" value="${escHtml(m.time)}" placeholder="时间" oninput="onMilestoneTime('${project.id}','${m.id}',this.value)" />
+      <div class="editable auto-expand" contenteditable="true" placeholder="内容" oninput="onMilestoneContent('${project.id}','${m.id}',this)">${m.content || ''}</div>
+      <div class="editable auto-expand" contenteditable="true" placeholder="备注" oninput="onMilestoneNote('${project.id}','${m.id}',this)" style="margin-top:6px;">${m.note || ''}</div>
+    `;
+    list.appendChild(card);
+  });
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = () => { project.milestones.push({ id: uid(), time: '', content: '', note: '' }); renderMilestones(project); saveProjects(); };
+  list.appendChild(btn);
+}
+
+function deleteMilestone(pid, mid) {
+  const p = projectsData.find(x => x.id === pid);
+  p.milestones = p.milestones.filter(m => m.id !== mid);
+  renderMilestones(p);
+  saveProjects();
+}
+
+function onMilestoneTime(pid, mid, val) {
+  const m = projectsData.find(x => x.id === pid).milestones.find(x => x.id === mid);
+  m.time = val; debounce('ms', saveProjects);
+}
+
+function onMilestoneContent(pid, mid, el) {
+  const m = projectsData.find(x => x.id === pid).milestones.find(x => x.id === mid);
+  m.content = el.innerHTML; debounce('ms', saveProjects);
+}
+
+function onMilestoneNote(pid, mid, el) {
+  const m = projectsData.find(x => x.id === pid).milestones.find(x => x.id === mid);
+  m.note = el.innerHTML; debounce('ms', saveProjects);
+}
+
+// --- 开发记录 ---
+function renderDevlogs(project) {
+  const list = document.getElementById('devlog-list');
+  list.innerHTML = '';
+  project.devlogs.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    let imgHtml = '';
+    if (d.images && d.images.length > 0) {
+      imgHtml = '<div class="image-gallery">';
+      d.images.forEach((img, idx) => {
+        imgHtml += `<div class="image-thumb"><img src="${img}" alt="图片" /><span class="img-delete" onclick="deleteDevlogImage('${project.id}','${d.id}',${idx})">&times;</span></div>`;
+      });
+      imgHtml += '</div>';
+    }
+    card.innerHTML = `
+      <span class="delete-btn" onclick="deleteDevlog('${project.id}','${d.id}')">&times;</span>
+      <input type="text" value="${escHtml(d.time)}" placeholder="时间" oninput="onDevlogTime('${project.id}','${d.id}',this.value)" />
+      <div class="editable auto-expand" contenteditable="true" placeholder="内容" oninput="onDevlogContent('${project.id}','${d.id}',this)" style="margin-top:6px;">${d.content || ''}</div>
+      ${imgHtml}
+      <label class="upload-btn">
+        📷 上传图片
+        <input type="file" accept="image/*" multiple style="display:none" onchange="uploadDevlogImage('${project.id}','${d.id}',this)" />
+      </label>
+    `;
+    list.appendChild(card);
+  });
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = () => { project.devlogs.push({ id: uid(), time: '', content: '', images: [] }); renderDevlogs(project); saveProjects(); };
+  list.appendChild(btn);
+}
+
+function deleteDevlog(pid, did) {
+  const p = projectsData.find(x => x.id === pid);
+  p.devlogs = p.devlogs.filter(d => d.id !== did);
+  renderDevlogs(p);
+  saveProjects();
+}
+
+function onDevlogTime(pid, did, val) {
+  const d = projectsData.find(x => x.id === pid).devlogs.find(x => x.id === did);
+  d.time = val; debounce('dev', saveProjects);
+}
+
+function onDevlogContent(pid, did, el) {
+  const d = projectsData.find(x => x.id === pid).devlogs.find(x => x.id === did);
+  d.content = el.innerHTML; debounce('dev', saveProjects);
+}
+
+function uploadDevlogImage(pid, did, input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const d = projectsData.find(x => x.id === pid).devlogs.find(x => x.id === did);
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      d.images.push(e.target.result);
+      loaded++;
+      if (loaded === files.length) {
+        renderDevlogs(projectsData.find(x => x.id === pid));
+        saveProjects();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function deleteDevlogImage(pid, did, idx) {
+  const d = projectsData.find(x => x.id === pid).devlogs.find(x => x.id === did);
+  d.images.splice(idx, 1);
+  renderDevlogs(projectsData.find(x => x.id === pid));
+  saveProjects();
+}
+
+// --- 待解决问题 ---
+function renderIssues(project) {
+  const list = document.getElementById('issue-list');
+  list.innerHTML = '';
+  project.issues.forEach(i => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <span class="delete-btn" onclick="deleteIssue('${project.id}','${i.id}')">&times;</span>
+      <div class="editable auto-expand" contenteditable="true" placeholder="问题描述" oninput="onIssueContent('${project.id}','${i.id}',this)">${i.content || ''}</div>
+      <div class="editable auto-expand" contenteditable="true" placeholder="备注" oninput="onIssueNote('${project.id}','${i.id}',this)" style="margin-top:6px;">${i.note || ''}</div>
+    `;
+    list.appendChild(card);
+  });
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = () => { project.issues.push({ id: uid(), content: '', note: '' }); renderIssues(project); saveProjects(); };
+  list.appendChild(btn);
+}
+
+function deleteIssue(pid, iid) {
+  const p = projectsData.find(x => x.id === pid);
+  p.issues = p.issues.filter(i => i.id !== iid);
+  renderIssues(p);
+  saveProjects();
+}
+
+function onIssueContent(pid, iid, el) {
+  const i = projectsData.find(x => x.id === pid).issues.find(x => x.id === iid);
+  i.content = el.innerHTML; debounce('iss', saveProjects);
+}
+
+function onIssueNote(pid, iid, el) {
+  const i = projectsData.find(x => x.id === pid).issues.find(x => x.id === iid);
+  i.note = el.innerHTML; debounce('iss', saveProjects);
+}
+
+// ========== 项目增删 ==========
+function addProject() {
+  showModal('添加项目', '请输入项目名称', (name) => {
+    if (!name.trim()) return;
+    const proj = { id: uid(), name: name.trim(), milestones: [], devlogs: [], issues: [] };
+    projectsData.push(proj);
+    currentProjectId = proj.id;
+    renderProjectTabs();
+    saveProjects();
+  });
+}
+
+function deleteProject() {
+  if (!currentProjectId) return;
+  const proj = projectsData.find(p => p.id === currentProjectId);
+  if (!proj) return;
+  showConfirm('确认删除', `确定要删除项目"${proj.name}"及其所有数据吗？此操作不可恢复。`, () => {
+    projectsData = projectsData.filter(p => p.id !== currentProjectId);
+    currentProjectId = projectsData.length > 0 ? projectsData[0].id : null;
+    renderProjectTabs();
+    saveProjects();
+  });
+}
+
+// ========== 弹窗 ==========
+let modalCallback = null;
+function showModal(title, placeholder, callback) {
+  document.getElementById('modal-title').textContent = title;
+  const input = document.getElementById('modal-input');
+  input.value = '';
+  input.placeholder = placeholder;
+  document.getElementById('modal-overlay').classList.add('show');
+  modalCallback = callback;
+  setTimeout(() => input.focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+  modalCallback = null;
+}
+
+document.getElementById('modal-confirm').onclick = () => {
+  const val = document.getElementById('modal-input').value;
+  if (modalCallback) modalCallback(val);
+  closeModal();
+};
+
+document.getElementById('modal-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { document.getElementById('modal-confirm').click(); }
+});
+
+let confirmCallback = null;
+function showConfirm(title, message, callback) {
+  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-message').textContent = message;
+  document.getElementById('confirm-overlay').classList.add('show');
+  confirmCallback = callback;
+}
+
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('show');
+  confirmCallback = null;
+}
+
+document.getElementById('confirm-ok').onclick = () => {
+  if (confirmCallback) confirmCallback();
+  closeConfirm();
+};
+
+// ========== 保存 ==========
+function saveHome() {
+  dbPut('home', homeData);
+}
+
+function saveProjects() {
+  // 逐个保存项目
+  projectsData.forEach(p => dbPut('projects', p));
+  // 清理已删除的项目（从DB中移除不在列表中的）
+  // 简单做法：维护一个项目ID列表
+  dbPut('projects', { id: '__project_ids__', ids: projectsData.map(p => p.id) });
+}
+
+// ========== 图片灯箱 ==========
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('show');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+  document.getElementById('lightbox-img').src = '';
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeLightbox();
+});
+
+// 全局图片点击事件委托：缩略图和编辑区内粘贴图片均可点击放大
+document.addEventListener('click', (e) => {
+  const img = e.target.closest('img');
+  if (!img) return;
+  // 开发记录缩略图
+  if (img.closest('.image-thumb')) {
+    e.stopPropagation();
+    openLightbox(img.src);
+    return;
+  }
+  // 编辑区内粘贴的图片
+  if (img.closest('.editable')) {
+    e.stopPropagation();
+    openLightbox(img.src);
+    return;
+  }
+});
+
+// ========== 工具函数 ==========
+function escHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ========== 初始化 ==========
+async function init() {
+  await openDB();
+
+  // 加载首页数据
+  const home = await dbGet('home', 'home');
+  if (home && home.career) {
+    homeData = home;
+  }
+  renderHome();
+
+  // 加载项目数据
+  const idRecord = await dbGet('projects', '__project_ids__');
+  if (idRecord && idRecord.ids) {
+    const ids = idRecord.ids;
+    for (const id of ids) {
+      const proj = await dbGet('projects', id);
+      if (proj && proj.id) projectsData.push(proj);
+    }
+  }
+
+  // 默认示例项目
+  if (projectsData.length === 0) {
+    projectsData.push({ id: uid(), name: '示例项目', milestones: [], devlogs: [], issues: [] });
+  }
+
+  currentProjectId = projectsData[0].id;
+  renderProjectTabs();
+}
+
+init();
+</script>
+</body>
+</html>
