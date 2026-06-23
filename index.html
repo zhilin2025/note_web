@@ -168,11 +168,52 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .problem-upload-btn:hover { background: #f0f6ff; border-color: #1a73e8; }
 .problem-upload-btn input { display: none; }
 
+/* === 资源收录页 === */
+.resource-page-layout { width: 100%; min-height: calc(100vh - 60px); padding: 20px; }
+.resource-content { width: 100%; max-width: 1800px; margin: 0 auto; }
+.resource-header { font-size: 20px; font-weight: 600; color: #333; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #f0f0f0; }
+.resource-sections { display: flex; gap: 24px; align-items: flex-start; }
+.resource-section { flex: 1; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 20px; min-height: calc(100vh - 200px); }
+.resource-section-header { font-size: 16px; font-weight: 600; color: #555; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; display: flex; align-items: center; gap: 8px; }
+.resource-section-header.toread { color: #e67e22; border-bottom-color: #e67e22; }
+.resource-section-header.read { color: #27ae60; border-bottom-color: #27ae60; }
+.resource-section-header .badge { width: 8px; height: 8px; border-radius: 50%; }
+.resource-section-header .toread .badge { background: #e67e22; }
+.resource-section-header .read .badge { background: #27ae60; }
+.resource-list { max-height: calc(100vh - 240px); overflow-y: auto; padding-right: 8px; }
+.resource-item { background: #fafafa; border-radius: 10px; padding: 14px; margin-bottom: 12px; border: 1px solid #e8eaed; transition: box-shadow 0.2s; position: relative; }
+.resource-item:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.resource-item .delete-btn { position: absolute; top: 8px; right: 8px; cursor: pointer; color: #999; font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 4px; transition: all 0.15s; }
+.resource-item .delete-btn:hover { color: #e53935; background: #fce4ec; }
+.resource-check { width: 24px; height: 24px; border: 2px solid #bbb; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; user-select: none; margin-right: 12px; }
+.resource-check:hover { border-color: #1a73e8; }
+.resource-check.checked { background: #27ae60; border-color: #27ae60; }
+.resource-check.checked::after { content: "✓"; color: #fff; font-size: 14px; font-weight: 700; }
+.resource-item-content { display: flex; gap: 12px; }
+.resource-main { flex: 1; min-width: 0; }
+.resource-url-input { width: 100%; border: 1px solid #ddd; border-radius: 6px; padding: 8px 10px; font-size: 13px; outline: none; margin-bottom: 8px; transition: border-color 0.2s; background: #fff; }
+.resource-url-input:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.1); }
+.resource-note-area { position: relative; }
+.resource-note { min-height: 50px; line-height: 1.5; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; background: #fff; outline: none; font-size: 13px; transition: border-color 0.2s; }
+.resource-note:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.1); }
+.resource-note img { max-width: 180px; max-height: 140px; border-radius: 6px; margin: 5px 3px; cursor: zoom-in; display: inline-block; vertical-align: middle; }
+.resource-images { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.resource-img-thumb { position: relative; width: 70px; height: 70px; border-radius: 6px; overflow: hidden; border: 1px solid #e0e0e0; }
+.resource-img-thumb img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
+.resource-img-thumb .img-delete { position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; opacity: 0; transition: opacity 0.15s; }
+.resource-img-thumb:hover .img-delete { opacity: 1; }
+.resource-upload-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid #c8d6e5; border-radius: 6px; background: #fff; cursor: pointer; font-size: 11px; color: #1a73e8; margin-top: 6px; transition: all 0.2s; }
+.resource-upload-btn:hover { background: #f0f6ff; border-color: #1a73e8; }
+.resource-upload-btn input { display: none; }
+
 /* 响应式 */
 @media (max-width: 900px) {
   .home-columns, .project-columns { flex-direction: column; }
   .note-column, .project-column { width: 100%; }
   .problem-content { padding: 16px; }
+  .resource-sections { flex-direction: column; }
+  .resource-section { min-height: auto; }
+  .resource-list { max-height: 400px; }
 }
 </style>
 </head>
@@ -183,6 +224,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
   <div class="nav-tab active" data-page="home" onclick="switchPage('home')">首页</div>
   <div class="nav-tab" data-page="projects" onclick="switchPage('projects')">项目管理页</div>
   <div class="nav-tab" data-page="problems" onclick="switchPage('problems')">问题记录页</div>
+  <div class="nav-tab" data-page="resources" onclick="switchPage('resources')">资源收录页</div>
   <div class="nav-right">
     <button class="nav-data-btn export-btn" onclick="exportData()" title="导出全部数据为JSON文件，保存到本文件夹">📥 导出数据</button>
     <button class="nav-data-btn" onclick="document.getElementById('import-file').click()" title="从JSON文件导入数据恢复">📤 导入数据</button>
@@ -221,6 +263,29 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
       <div class="problem-header">📋 问题与解决方案</div>
       <div class="problem-list" id="problem-list"></div>
       <button class="add-btn" onclick="addProblem()" style="margin-top: 16px;">+ 添加问题记录</button>
+    </div>
+  </div>
+</div>
+
+<!-- 资源收录页 -->
+<div id="page-resources" class="page">
+  <div class="resource-page-layout">
+    <div class="resource-content">
+      <div class="resource-header">📚 资源收录</div>
+      <div class="resource-sections">
+        <!-- 待看区域 -->
+        <div class="resource-section">
+          <div class="resource-section-header toread"><span class="badge"></span>待看</div>
+          <div class="resource-list" id="resource-toread-list"></div>
+          <button class="add-btn" onclick="addResource(false)" style="margin-top: 12px;">+ 添加资源</button>
+        </div>
+        <!-- 已看区域 -->
+        <div class="resource-section">
+          <div class="resource-section-header read"><span class="badge"></span>已看</div>
+          <div class="resource-list" id="resource-read-list"></div>
+          <button class="add-btn" onclick="addResource(true)" style="margin-top: 12px;">+ 添加资源</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -268,7 +333,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 <script>
 // ========== IndexedDB ==========
 const DB_NAME = 'NotesAppDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 let db = null;
 
 function openDB() {
@@ -276,11 +341,17 @@ function openDB() {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = (e) => {
       const db = e.target.result;
+
+      // 版本升级时创建所有需要的存储空间
       if (!db.objectStoreNames.contains('home')) db.createObjectStore('home', { keyPath: 'key' });
       if (!db.objectStoreNames.contains('problems')) db.createObjectStore('problems', { keyPath: 'key' });
+      if (!db.objectStoreNames.contains('resources')) db.createObjectStore('resources', { keyPath: 'key' });
       if (!db.objectStoreNames.contains('projects')) db.createObjectStore('projects', { keyPath: 'id' });
     };
-    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onsuccess = (e) => {
+      db = e.target.result;
+      resolve(db);
+    };
     req.onerror = (e) => reject(e);
   });
 }
@@ -322,6 +393,8 @@ let homeData = {
 
 let problemsData = []; // [{id, problem(html), solution(html)}]
 
+let resourcesData = []; // [{id, url, note(html), images[], read: boolean}]
+
 let projectsData = []; // [{id, name, milestones:[], devlogs:[], issues:[]}]
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
@@ -332,6 +405,7 @@ function switchPage(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + page));
   if (page === 'projects') renderProjectTabs();
   if (page === 'problems') renderProblems();
+  if (page === 'resources') renderResources();
 }
 
 // ========== 首页渲染 ==========
@@ -641,6 +715,113 @@ function deleteProblemImage(id, type, idx) {
   }
 }
 
+// ========== 资源收录页 ==========
+function renderResources() {
+  const toreadList = document.getElementById('resource-toread-list');
+  const readList = document.getElementById('resource-read-list');
+  toreadList.innerHTML = '';
+  readList.innerHTML = '';
+
+  resourcesData.forEach(item => {
+    const container = item.read ? readList : toreadList;
+    const card = document.createElement('div');
+    card.className = 'resource-item';
+
+    // 图片显示区域
+    let imagesHtml = '';
+    if (item.images && item.images.length > 0) {
+      imagesHtml = '<div class="resource-images">';
+      item.images.forEach((img, idx) => {
+        imagesHtml += `<div class="resource-img-thumb"><img src="${img}" alt="图片" /><span class="img-delete" onclick="deleteResourceImage('${item.id}',${idx})">&times;</span></div>`;
+      });
+      imagesHtml += '</div>';
+    }
+
+    card.innerHTML = `
+      <span class="delete-btn" onclick="deleteResource('${item.id}')">&times;</span>
+      <div class="resource-item-content">
+        <div class="resource-check ${item.read ? 'checked' : ''}" onclick="toggleResource('${item.id}')"></div>
+        <div class="resource-main">
+          <input type="text" class="resource-url-input" value="${escHtml(item.url)}" placeholder="资源链接 URL" oninput="onResourceUrl('${item.id}', this.value)" />
+          <div class="resource-note-area">
+            <div class="editable resource-note" contenteditable="true" placeholder="备注..." oninput="onResourceNote('${item.id}', this)">${item.note || ''}</div>
+          </div>
+          ${imagesHtml}
+          <label class="resource-upload-btn">
+            📷 上传图片
+            <input type="file" accept="image/*" multiple style="display:none" onchange="uploadResourceImage('${item.id}',this)" />
+          </label>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function addResource(read = false) {
+  resourcesData.unshift({ id: uid(), url: '', note: '', images: [], read: read });
+  renderResources();
+  saveResources();
+}
+
+function deleteResource(id) {
+  resourcesData = resourcesData.filter(r => r.id !== id);
+  renderResources();
+  saveResources();
+}
+
+function toggleResource(id) {
+  const item = resourcesData.find(r => r.id === id);
+  if (item) {
+    item.read = !item.read;
+    renderResources();
+    saveResources();
+  }
+}
+
+function onResourceUrl(id, val) {
+  const item = resourcesData.find(r => r.id === id);
+  if (item) { item.url = val; debounce('resource', saveResources); }
+}
+
+function onResourceNote(id, el) {
+  const item = resourcesData.find(r => r.id === id);
+  if (item) { item.note = el.innerHTML; debounce('resource', saveResources); }
+}
+
+function uploadResourceImage(id, input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const item = resourcesData.find(r => r.id === id);
+  if (!item) return;
+
+  if (!item.images) item.images = [];
+
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      item.images.push(e.target.result);
+      loaded++;
+      if (loaded === files.length) {
+        renderResources();
+        saveResources();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function deleteResourceImage(id, idx) {
+  const item = resourcesData.find(r => r.id === id);
+  if (!item) return;
+  if (item.images) {
+    item.images.splice(idx, 1);
+    renderResources();
+    saveResources();
+  }
+}
+
 // ========== 项目管理页 ==========
 let currentProjectId = null;
 
@@ -926,19 +1107,34 @@ document.getElementById('confirm-ok').onclick = () => {
 
 // ========== 保存 ==========
 function saveHome() {
-  dbPut('home', homeData);
+  if (db) dbPut('home', homeData);
 }
 
 function saveProblems() {
-  dbPut('problems', { key: 'problems', data: problemsData });
+  if (db) dbPut('problems', { key: 'problems', data: problemsData });
+}
+
+function saveResources() {
+  if (db) dbPut('resources', { key: 'resources', data: resourcesData });
 }
 
 function saveProjects() {
+  if (!db) return;
   // 逐个保存项目
   projectsData.forEach(p => dbPut('projects', p));
   // 清理已删除的项目（从DB中移除不在列表中的）
   // 简单做法：维护一个项目ID列表
   dbPut('projects', { id: '__project_ids__', ids: projectsData.map(p => p.id) });
+}
+
+function saveAllData() {
+  // 确保所有数据都保存到数据库
+  if (db) {
+    saveHome();
+    saveProblems();
+    saveResources();
+    saveProjects();
+  }
 }
 
 // ========== 图片灯箱 ==========
@@ -966,6 +1162,18 @@ document.addEventListener('click', (e) => {
     openLightbox(img.src);
     return;
   }
+  // 问题记录缩略图
+  if (img.closest('.problem-img-thumb')) {
+    e.stopPropagation();
+    openLightbox(img.src);
+    return;
+  }
+  // 资源缩略图
+  if (img.closest('.resource-img-thumb')) {
+    e.stopPropagation();
+    openLightbox(img.src);
+    return;
+  }
   // 编辑区内粘贴的图片
   if (img.closest('.editable')) {
     e.stopPropagation();
@@ -987,6 +1195,7 @@ async function exportData() {
   // 确保最新数据已保存
   saveHome();
   saveProblems();
+  saveResources();
   saveProjects();
 
   // 收集全部数据
@@ -994,6 +1203,7 @@ async function exportData() {
     _meta: { version: 1, exportedAt: new Date().toISOString(), app: 'NotesApp' },
     home: homeData,
     problems: problemsData,
+    resources: resourcesData,
     projects: projectsData
   };
 
@@ -1045,6 +1255,12 @@ async function importData(input) {
       saveProblems();
     }
 
+    // 恢复资源数据
+    if (data.resources && Array.isArray(data.resources)) {
+      resourcesData = data.resources;
+      saveResources();
+    }
+
     // 恢复项目数据
     if (data.projects && Array.isArray(data.projects)) {
       projectsData = data.projects;
@@ -1080,6 +1296,10 @@ async function init() {
   const home = await dbGet('home', 'home');
   if (home && home.career) {
     homeData = home;
+  } else {
+    // 如果没有数据，确保有基本结构
+    homeData = { key: 'home', career: [], todos: [], diaries: [] };
+    saveHome();
   }
   renderHome();
 
@@ -1087,6 +1307,12 @@ async function init() {
   const problems = await dbGet('problems', 'problems');
   if (problems && problems.data && Array.isArray(problems.data)) {
     problemsData = problems.data;
+  }
+
+  // 加载资源数据
+  const resources = await dbGet('resources', 'resources');
+  if (resources && resources.data && Array.isArray(resources.data)) {
+    resourcesData = resources.data;
   }
 
   // 加载项目数据
@@ -1102,13 +1328,18 @@ async function init() {
   // 默认示例项目
   if (projectsData.length === 0) {
     projectsData.push({ id: uid(), name: '示例项目', milestones: [], devlogs: [], issues: [] });
+    saveProjects();
   }
 
   currentProjectId = projectsData[0].id;
   renderProjectTabs();
 
+  // 如果有数据，渲染其他页面
+  if (problemsData.length > 0) renderProblems();
+  if (resourcesData.length > 0) renderResources();
+
   // 空数据时显示导入提示
-  const hasData = homeData.career.length || homeData.todos.length || homeData.diaries.length || problemsData.length > 0;
+  const hasData = homeData.career.length || homeData.todos.length || homeData.diaries.length || problemsData.length > 0 || resourcesData.length > 0;
   const hintEl = document.getElementById('import-hint');
   if (!hasData && projectsData.every(p => !p.milestones.length && !p.devlogs.length && !p.issues.length)) {
     hintEl.style.display = 'block';
