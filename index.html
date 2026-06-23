@@ -45,17 +45,37 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .career-title { color: blue; font-weight: bold; font-size: 14px; margin-bottom: 6px; }
 .career-content { color: lightblue; font-weight: normal; font-size: 14px; }
 
-/* 中间 - 代办事项 */
-.todo-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; margin-bottom: 6px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e8eaed; position: relative; }
+/* 中间 - 待办事项 */
+.todo-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; margin-bottom: 6px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e8eaed; position: relative; transition: all 0.2s; }
+.todo-item.expanded { background: #fff; border: 1px solid #1a73e8; box-shadow: 0 2px 8px rgba(26,115,232,0.1); }
+.todo-item.expanded .toggle-subtasks { transform: rotate(90deg); color: #1a73e8; }
 .todo-checkbox { width: 22px; height: 22px; border: 2px solid #bbb; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; user-select: none; }
 .todo-checkbox:hover { border-color: #1a73e8; }
 .todo-checkbox.checked { background: #1a73e8; border-color: #1a73e8; }
 .todo-checkbox.checked::after { content: "✓"; color: #fff; font-size: 14px; font-weight: 700; }
-.todo-text { flex: 1; font-size: 14px; min-width: 0; }
+.todo-text { flex: 1; font-size: 14px; min-width: 0; cursor: pointer; }
 .todo-text.completed { color: #999; }
 .todo-item .delete-btn { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); }
 .todo-input { flex: 1; border: none; outline: none; font-size: 14px; background: transparent; font-family: inherit; }
 .todo-input:focus { border-bottom: 1px solid #1a73e8; }
+
+/* 子任务区域 */
+.subtasks-toggle { cursor: pointer; font-size: 16px; color: #666; transition: all 0.2s; }
+.todo-item.expanded .subtasks-toggle { color: #1a73e8; }
+.subtasks-section { display: none; margin-top: 12px; padding: 12px; background: #f5f7fa; border-radius: 8px; border: 1px solid #e0e6ed; margin-bottom: 8px; }
+.todo-item.expanded .subtasks-section { display: block; }
+.subtasks-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.subtasks-list { margin-bottom: 12px; }
+.subtask-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding: 6px 10px; background: #fff; border-radius: 6px; border: 1px solid #e0e6ed; }
+.subtask-checkbox { width: 18px; height: 18px; border: 2px solid #ccc; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.subtask-checkbox.checked { background: #4caf50; border-color: #4caf50; }
+.subtask-checkbox.checked::after { content: "✓"; color: #fff; font-size: 12px; }
+.subtask-text { flex: 1; font-size: 13px; }
+.subtask-text.completed { text-decoration: line-through; opacity: 0.6; }
+.subtask-delete { cursor: pointer; color: #999; font-size: 14px; }
+.todo-content { margin-top: 8px; }
+.todo-content textarea { width: 100%; min-height: 80px; border: 1px solid #e0e6ed; border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.5; resize: vertical; font-family: inherit; outline: none; transition: border-color 0.2s; }
+.todo-content textarea:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.1); }
 
 /* 右侧 - 每日随记 */
 .diary-time { margin-bottom: 6px; }
@@ -243,9 +263,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
       <div class="column-header">职业方向&技术栈</div>
       <div class="column-body" id="career-list"></div>
     </div>
-    <!-- 中间：代办事项 -->
+    <!-- 中间：待办事项 -->
     <div class="note-column">
-      <div class="column-header">代办事项</div>
+      <div class="column-header">待办事项</div>
       <div class="column-body" id="todo-list"></div>
     </div>
     <!-- 右侧：每日随记 -->
@@ -387,7 +407,7 @@ function debounce(key, fn, ms = 300) {
 let homeData = {
   key: 'home',
   career: [],   // [{id, title, content}]
-  todos: [],    // [{id, text, done}]
+  todos: [],    // [{id, text, done, subtasks:[], content(html)}]
   diaries: []   // [{id, time, title, content(html)}]
 };
 
@@ -458,19 +478,53 @@ function onCareerContent(id, val) {
   if (item) { item.content = val; debounce('career', saveHome); }
 }
 
-// --- 代办事项 ---
+// --- 待办事项 ---
 function renderTodos() {
   const list = document.getElementById('todo-list');
   list.innerHTML = '';
   homeData.todos.forEach((item) => {
     const div = document.createElement('div');
-    div.className = 'todo-item';
+    div.className = `todo-item ${item.expanded ? 'expanded' : ''}`;
     div.innerHTML = `
       <div class="todo-checkbox ${item.done ? 'checked' : ''}" onclick="toggleTodo('${item.id}')"></div>
-      <input type="text" class="todo-input ${item.done ? 'completed' : ''}" value="${escHtml(item.text)}" placeholder="待办事项" oninput="onTodoText('${item.id}', this.value)" />
+      <div class="todo-text ${item.done ? 'completed' : ''}" onclick="toggleSubtasks('${item.id}')">${escHtml(item.text)}</div>
+      <span class="subtasks-toggle" onclick="toggleSubtasks('${item.id}')">▶</span>
       <span class="delete-btn" onclick="deleteTodo('${item.id}')">&times;</span>
     `;
     list.appendChild(div);
+
+    // 添加子任务区域（如果展开）
+    if (item.expanded) {
+      const subtasksSection = document.createElement('div');
+      subtasksSection.className = 'subtasks-section';
+      subtasksSection.dataset.todoId = item.id;
+
+      // 添加子任务标题和按钮
+      const subtasksHeader = document.createElement('div');
+      subtasksHeader.className = 'subtasks-header';
+      subtasksHeader.innerHTML = `
+        <div style="font-size: 14px; font-weight: 500;">子任务</div>
+        <button class="add-btn" style="padding: 4px 10px; font-size: 12px;" onclick="addSubtask('${item.id}')">+ 添加子任务</button>
+      `;
+      subtasksSection.appendChild(subtasksHeader);
+
+      // 添加子任务列表
+      const subtasksList = document.createElement('div');
+      subtasksList.className = 'subtasks-list';
+      subtasksList.id = `subtasks-${item.id}`;
+      renderSubtasksList(subtasksList, item);
+      subtasksSection.appendChild(subtasksList);
+
+      // 添加内容编辑区
+      const todoContent = document.createElement('div');
+      todoContent.className = 'todo-content';
+      todoContent.innerHTML = `
+        <textarea placeholder="记录相关内容、想法、参考资料..." oninput="onTodoContent('${item.id}', this)">${item.content || ''}</textarea>
+      `;
+      subtasksSection.appendChild(todoContent);
+
+      div.appendChild(subtasksSection);
+    }
   });
   const btn = document.createElement('button');
   btn.className = 'add-btn';
@@ -479,8 +533,24 @@ function renderTodos() {
   list.appendChild(btn);
 }
 
+function renderSubtasksList(container, todoItem) {
+  container.innerHTML = '';
+  if (todoItem.subtasks && todoItem.subtasks.length > 0) {
+    todoItem.subtasks.forEach((subtask, idx) => {
+      const subtaskDiv = document.createElement('div');
+      subtaskDiv.className = 'subtask-item';
+      subtaskDiv.innerHTML = `
+        <div class="subtask-checkbox ${subtask.done ? 'checked' : ''}" onclick="toggleSubtask('${todoItem.id}', ${idx})"></div>
+        <div class="subtask-text ${subtask.done ? 'completed' : ''}" oninput="onSubtaskText('${todoItem.id}', ${idx}, this)" contenteditable="true" placeholder="子任务内容">${escHtml(subtask.text)}</div>
+        <span class="subtask-delete" onclick="deleteSubtask('${todoItem.id}', ${idx})">&times;</span>
+      `;
+      container.appendChild(subtaskDiv);
+    });
+  }
+}
+
 function addTodo() {
-  homeData.todos.push({ id: uid(), text: '', done: false });
+  homeData.todos.push({ id: uid(), text: '', done: false, subtasks: [], content: '' });
   renderTodos();
   saveHome();
 }
@@ -496,9 +566,68 @@ function toggleTodo(id) {
   if (item) { item.done = !item.done; renderTodos(); saveHome(); }
 }
 
-function onTodoText(id, el) {
+function onTodoText(id, val) {
   const item = homeData.todos.find(i => i.id === id);
-  item.text = el.innerHTML; debounce('todo', saveHome);
+  if (item) { item.text = val; debounce('todo', saveHome); }
+}
+
+function toggleSubtasks(id) {
+  const item = homeData.todos.find(i => i.id === id);
+  if (item) {
+    item.expanded = !item.expanded;
+    renderTodos();
+    // 重新渲染以保持展开状态
+    if (item.expanded) {
+      renderTodos();
+    }
+  }
+}
+
+function addSubtask(todoId) {
+  const item = homeData.todos.find(t => t.id === todoId);
+  if (item) {
+    if (!item.subtasks) item.subtasks = [];
+    item.subtasks.push({ id: uid(), text: '', done: false });
+    if (item.expanded) {
+      renderTodos();
+    }
+    saveHome();
+  }
+}
+
+function deleteSubtask(todoId, idx) {
+  const item = homeData.todos.find(t => t.id === todoId);
+  if (item && item.subtasks) {
+    item.subtasks.splice(idx, 1);
+    if (item.expanded) {
+      renderTodos();
+    }
+    saveHome();
+  }
+}
+
+function toggleSubtask(todoId, idx) {
+  const item = homeData.todos.find(t => t.id === todoId);
+  if (item && item.subtasks) {
+    item.subtasks[idx].done = !item.subtasks[idx].done;
+    if (item.expanded) {
+      renderTodos();
+    }
+    saveHome();
+  }
+}
+
+function onSubtaskText(todoId, idx, el) {
+  const item = homeData.todos.find(t => t.id === todoId);
+  if (item && item.subtasks) {
+    item.subtasks[idx].text = el.innerHTML;
+    debounce('subtask', saveHome);
+  }
+}
+
+function onTodoContent(id, el) {
+  const item = homeData.todos.find(i => i.id === id);
+  if (item) { item.content = el.value; debounce('content', saveHome); }
 }
 
 function onTodoText(id, val) {
