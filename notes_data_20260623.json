@@ -1,12 +1,18 @@
 {
   "_meta": {
     "version": 1,
-    "exportedAt": "2026-06-23T06:26:28.057Z",
+    "exportedAt": "2026-06-23T13:17:30.673Z",
     "app": "NotesApp"
   },
   "home": {
     "key": "home",
-    "career": [],
+    "career": [
+      {
+        "id": "mqq9urhq99bxh",
+        "title": "一两年的时间把技术链打通",
+        "content": "openarm和roboparty两款机器人，涵盖机械臂、底盘、双足、视觉、WBC、强化学习训练多个模块"
+      }
+    ],
     "todos": [
       {
         "id": "mqpz8ypzifduq",
@@ -15,7 +21,7 @@
       },
       {
         "id": "mqpz9s1lqgudt",
-        "text": "了解一下那种连续几个小时无人干预让Agent自主开发功能是怎么搞的",
+        "text": "Harness Engineering,了解一下那种连续几个小时无人干预让Agent自主开发功能是怎么搞的",
         "done": false
       },
       {
@@ -72,12 +78,6 @@
           "time": "20260623-20260624",
           "content": "整理现有技术开发进程，确定后续开发内容",
           "note": ""
-        },
-        {
-          "id": "mqq6wti28x2g4",
-          "time": "",
-          "content": "",
-          "note": ""
         }
       ],
       "devlogs": [
@@ -90,7 +90,23 @@
           ]
         }
       ],
-      "issues": []
+      "issues": [
+        {
+          "id": "mqqo3mjr1fwpi",
+          "content": "检查结构件和关节限位",
+          "done": false
+        },
+        {
+          "id": "mqqo4gwc56hh1",
+          "content": "测试已开发的几个功能",
+          "done": false
+        },
+        {
+          "id": "mqqo4z4yum1fn",
+          "content": "确定后续强化学习和遥操作的开发方向",
+          "done": false
+        }
+      ]
     }
   ]
 }

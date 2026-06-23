@@ -496,6 +496,11 @@ function toggleTodo(id) {
   if (item) { item.done = !item.done; renderTodos(); saveHome(); }
 }
 
+function onTodoText(id, el) {
+  const item = homeData.todos.find(i => i.id === id);
+  item.text = el.innerHTML; debounce('todo', saveHome);
+}
+
 function onTodoText(id, val) {
   const item = homeData.todos.find(i => i.id === id);
   if (item) { item.text = val; debounce('todo', saveHome); }
@@ -888,14 +893,13 @@ function renderMilestones(project) {
       <span class="delete-btn" onclick="deleteMilestone('${project.id}','${m.id}')">&times;</span>
       <input type="text" value="${escHtml(m.time)}" placeholder="时间" oninput="onMilestoneTime('${project.id}','${m.id}',this.value)" />
       <div class="editable auto-expand" contenteditable="true" placeholder="内容" oninput="onMilestoneContent('${project.id}','${m.id}',this)">${m.content || ''}</div>
-      <div class="editable auto-expand" contenteditable="true" placeholder="备注" oninput="onMilestoneNote('${project.id}','${m.id}',this)" style="margin-top:6px;">${m.note || ''}</div>
     `;
     list.appendChild(card);
   });
   const btn = document.createElement('button');
   btn.className = 'add-btn';
   btn.textContent = '+ 添加';
-  btn.onclick = () => { project.milestones.push({ id: uid(), time: '', content: '', note: '' }); renderMilestones(project); saveProjects(); };
+  btn.onclick = () => { project.milestones.push({ id: uid(), time: '', content: '' }); renderMilestones(project); saveProjects(); };
   list.appendChild(btn);
 }
 
@@ -914,11 +918,6 @@ function onMilestoneTime(pid, mid, val) {
 function onMilestoneContent(pid, mid, el) {
   const m = projectsData.find(x => x.id === pid).milestones.find(x => x.id === mid);
   m.content = el.innerHTML; debounce('ms', saveProjects);
-}
-
-function onMilestoneNote(pid, mid, el) {
-  const m = projectsData.find(x => x.id === pid).milestones.find(x => x.id === mid);
-  m.note = el.innerHTML; debounce('ms', saveProjects);
 }
 
 // --- 开发记录 ---
@@ -1003,19 +1002,19 @@ function renderIssues(project) {
   const list = document.getElementById('issue-list');
   list.innerHTML = '';
   project.issues.forEach(i => {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
+    const div = document.createElement('div');
+    div.className = 'todo-item';
+    div.innerHTML = `
+      <div class="todo-checkbox ${i.done ? 'checked' : ''}" onclick="toggleIssue('${project.id}','${i.id}')"></div>
+      <div class="todo-text ${i.done ? 'completed' : ''}" contenteditable="true" placeholder="待解决问题" oninput="onIssueText('${project.id}','${i.id}',this)">${escHtml(i.content)}</div>
       <span class="delete-btn" onclick="deleteIssue('${project.id}','${i.id}')">&times;</span>
-      <div class="editable auto-expand" contenteditable="true" placeholder="问题描述" oninput="onIssueContent('${project.id}','${i.id}',this)">${i.content || ''}</div>
-      <div class="editable auto-expand" contenteditable="true" placeholder="备注" oninput="onIssueNote('${project.id}','${i.id}',this)" style="margin-top:6px;">${i.note || ''}</div>
     `;
-    list.appendChild(card);
+    list.appendChild(div);
   });
   const btn = document.createElement('button');
   btn.className = 'add-btn';
   btn.textContent = '+ 添加';
-  btn.onclick = () => { project.issues.push({ id: uid(), content: '', note: '' }); renderIssues(project); saveProjects(); };
+  btn.onclick = () => { project.issues.push({ id: uid(), content: '', done: false }); renderIssues(project); saveProjects(); };
   list.appendChild(btn);
 }
 
@@ -1026,14 +1025,15 @@ function deleteIssue(pid, iid) {
   saveProjects();
 }
 
-function onIssueContent(pid, iid, el) {
-  const i = projectsData.find(x => x.id === pid).issues.find(x => x.id === iid);
-  i.content = el.innerHTML; debounce('iss', saveProjects);
+function toggleIssue(pid, iid) {
+  const p = projectsData.find(x => x.id === pid);
+  const i = p.issues.find(x => x.id === iid);
+  if (i) { i.done = !i.done; renderIssues(p); saveProjects(); }
 }
 
-function onIssueNote(pid, iid, el) {
+function onIssueText(pid, iid, el) {
   const i = projectsData.find(x => x.id === pid).issues.find(x => x.id === iid);
-  i.note = el.innerHTML; debounce('iss', saveProjects);
+  i.content = el.innerHTML; debounce('iss', saveProjects);
 }
 
 // ========== 项目增删 ==========
