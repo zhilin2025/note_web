@@ -1,14 +1,41 @@
 {
   "_meta": {
     "version": 1,
-    "exportedAt": "2026-06-22T11:05:03.372Z",
+    "exportedAt": "2026-06-23T05:16:52.485Z",
     "app": "NotesApp"
   },
   "home": {
     "key": "home",
     "career": [],
-    "todos": [],
+    "todos": [
+      {
+        "id": "mqpz8ypzifduq",
+        "text": "挑战杯揭榜挂帅报名(6月26截至)",
+        "done": false
+      },
+      {
+        "id": "mqpz9s1lqgudt",
+        "text": "了解一下那种连续几个小时无人干预让Agent自主开发功能是怎么搞的",
+        "done": false
+      },
+      {
+        "id": "mqq6tjxqu7hwi",
+        "text": "做一个爬虫软件（让Agent无干预自主完成整套设计、开发和测试）",
+        "done": false
+      },
+      {
+        "id": "mqq6z967ydsav",
+        "text": "豆包打电话练口语和发音",
+        "done": false
+      }
+    ],
     "diaries": [
+      {
+        "id": "mqq0e0ysyi5sa",
+        "time": "20260623",
+        "title": "挑战杯报名&",
+        "content": ""
+      },
       {
         "id": "mqoydytxsl3el",
         "time": "20260622",
@@ -26,6 +53,12 @@
           "id": "mqoyg0hfdrek8",
           "time": "20260623-20260624",
           "content": "整理现有技术开发进程，确定后续开发内容",
+          "note": ""
+        },
+        {
+          "id": "mqq6wti28x2g4",
+          "time": "",
+          "content": "",
           "note": ""
         }
       ],

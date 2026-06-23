@@ -131,10 +131,48 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .import-hint { text-align: center; padding: 12px; margin: 10px 20px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; color: #8d6e00; font-size: 13px; display: none; }
 .import-hint a { color: #1a73e8; cursor: pointer; text-decoration: underline; }
 
+/* === 问题记录页 === */
+.problem-page-layout { width: 100%; min-height: calc(100vh - 60px); padding: 20px; }
+
+/* 内容区 - 铺满整个页面 */
+.problem-content { width: 100%; max-width: 1600px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 24px; }
+.problem-header { font-size: 20px; font-weight: 600; color: #333; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #f0f0f0; }
+.problem-list { width: 100%; max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 12px; }
+
+/* 问题卡片 */
+.problem-card { background: #fafafa; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #e8eaed; position: relative; transition: box-shadow 0.2s; }
+.problem-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.problem-card .delete-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; color: #999; font-size: 20px; line-height: 1; padding: 4px 8px; border-radius: 6px; transition: all 0.15s; }
+.problem-card .delete-btn:hover { color: #e53935; background: #fce4ec; }
+
+/* 问题标题区域 */
+.problem-section-title { font-size: 13px; font-weight: 600; color: #666; margin: 12px 0 6px 0; display: flex; align-items: center; gap: 6px; }
+.problem-section-title.first { margin-top: 0; }
+.problem-section-title .icon { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
+.problem-section-title .problem-icon { background: #e74c3c; }
+.problem-section-title .solution-icon { background: #27ae60; }
+
+/* 问题编辑区 */
+.problem-edit-area { position: relative; }
+.problem-edit { min-height: 60px; line-height: 1.6; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; outline: none; transition: border-color 0.2s; }
+.problem-edit:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.1); }
+.problem-edit img { max-width: 200px; max-height: 150px; border-radius: 6px; margin: 6px 4px; cursor: zoom-in; display: inline-block; vertical-align: middle; }
+
+/* 加粗按钮 */
+.problem-bold-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: #e8eaed; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-weight: 900; font-size: 13px; color: #333; transition: all 0.15s; user-select: none; position: absolute; top: 4px; right: 4px; }
+.problem-bold-btn:hover { background: #d0d0d0; }
+.problem-bold-btn:active { background: #bbb; }
+
+/* 上传图片按钮 */
+.problem-upload-btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border: 1px solid #c8d6e5; border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px; color: #1a73e8; margin-top: 6px; transition: all 0.2s; }
+.problem-upload-btn:hover { background: #f0f6ff; border-color: #1a73e8; }
+.problem-upload-btn input { display: none; }
+
 /* 响应式 */
 @media (max-width: 900px) {
   .home-columns, .project-columns { flex-direction: column; }
   .note-column, .project-column { width: 100%; }
+  .problem-content { padding: 16px; }
 }
 </style>
 </head>
@@ -144,6 +182,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 <div class="nav-tabs">
   <div class="nav-tab active" data-page="home" onclick="switchPage('home')">首页</div>
   <div class="nav-tab" data-page="projects" onclick="switchPage('projects')">项目管理页</div>
+  <div class="nav-tab" data-page="problems" onclick="switchPage('problems')">问题记录页</div>
   <div class="nav-right">
     <button class="nav-data-btn export-btn" onclick="exportData()" title="导出全部数据为JSON文件，保存到本文件夹">📥 导出数据</button>
     <button class="nav-data-btn" onclick="document.getElementById('import-file').click()" title="从JSON文件导入数据恢复">📤 导入数据</button>
@@ -171,6 +210,17 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     <div class="note-column">
       <div class="column-header">每日随记</div>
       <div class="column-body" id="diary-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 问题记录页 -->
+<div id="page-problems" class="page">
+  <div class="problem-page-layout">
+    <div class="problem-content">
+      <div class="problem-header">📋 问题与解决方案</div>
+      <div class="problem-list" id="problem-list"></div>
+      <button class="add-btn" onclick="addProblem()" style="margin-top: 16px;">+ 添加问题记录</button>
     </div>
   </div>
 </div>
@@ -227,6 +277,7 @@ function openDB() {
     req.onupgradeneeded = (e) => {
       const db = e.target.result;
       if (!db.objectStoreNames.contains('home')) db.createObjectStore('home', { keyPath: 'key' });
+      if (!db.objectStoreNames.contains('problems')) db.createObjectStore('problems', { keyPath: 'key' });
       if (!db.objectStoreNames.contains('projects')) db.createObjectStore('projects', { keyPath: 'id' });
     };
     req.onsuccess = (e) => { db = e.target.result; resolve(db); };
@@ -269,6 +320,8 @@ let homeData = {
   diaries: []   // [{id, time, title, content(html)}]
 };
 
+let problemsData = []; // [{id, problem(html), solution(html)}]
+
 let projectsData = []; // [{id, name, milestones:[], devlogs:[], issues:[]}]
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
@@ -278,6 +331,7 @@ function switchPage(page) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + page));
   if (page === 'projects') renderProjectTabs();
+  if (page === 'problems') renderProblems();
 }
 
 // ========== 首页渲染 ==========
@@ -399,7 +453,7 @@ function renderDiaries() {
 }
 
 function addDiary() {
-  homeData.diaries.push({ id: uid(), time: '', title: '', content: '' });
+  homeData.diaries.unshift({ id: uid(), time: '', title: '', content: '' });
   renderDiaries();
   saveHome();
 }
@@ -442,8 +496,150 @@ document.addEventListener('keydown', (e) => {
       e.preventDefault();
       document.execCommand('bold', false, null);
     }
+    if (active && active.classList.contains('problem-edit')) {
+      e.preventDefault();
+      document.execCommand('bold', false, null);
+      // 找到对应的问题记录
+      const card = active.closest('.problem-card');
+      if (card) {
+        const id = card.dataset.id;
+        const item = problemsData.find(p => p.id === id);
+        if (item) {
+          const isProblem = active.classList.contains('problem-edit-problem');
+          if (isProblem) item.problem = active.innerHTML;
+          else item.solution = active.innerHTML;
+          debounce('problem-bold', saveProblems);
+        }
+      }
+    }
   }
 });
+
+// ========== 问题记录页 ==========
+function renderProblems() {
+  const list = document.getElementById('problem-list');
+  list.innerHTML = '';
+  problemsData.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'problem-card';
+    card.dataset.id = item.id;
+
+    // 图片显示区域
+    let problemImagesHtml = '';
+    let solutionImagesHtml = '';
+    if (item.problemImages && item.problemImages.length > 0) {
+      problemImagesHtml = '<div class="image-gallery">';
+      item.problemImages.forEach((img, idx) => {
+        problemImagesHtml += `<div class="image-thumb"><img src="${img}" alt="图片" /><span class="img-delete" onclick="deleteProblemImage('${item.id}','problem',${idx})">&times;</span></div>`;
+      });
+      problemImagesHtml += '</div>';
+    }
+    if (item.solutionImages && item.solutionImages.length > 0) {
+      solutionImagesHtml = '<div class="image-gallery">';
+      item.solutionImages.forEach((img, idx) => {
+        solutionImagesHtml += `<div class="image-thumb"><img src="${img}" alt="图片" /><span class="img-delete" onclick="deleteProblemImage('${item.id}','solution',${idx})">&times;</span></div>`;
+      });
+      solutionImagesHtml += '</div>';
+    }
+
+    card.innerHTML = `
+      <span class="delete-btn" onclick="deleteProblem('${item.id}')">&times;</span>
+      <div class="problem-section-title first"><span class="icon problem-icon"></span>问题描述</div>
+      <div class="problem-edit-area">
+        <div class="editable problem-edit problem-edit-problem" contenteditable="true" placeholder="描述遇到的问题..." oninput="onProblemContent('${item.id}', this)">${item.problem || ''}</div>
+        <button class="problem-bold-btn" title="加粗 (Ctrl+B)" onclick="boldInProblem('${item.id}', 'problem', this)">B</button>
+      </div>
+      ${problemImagesHtml}
+      <label class="problem-upload-btn">
+        📷 上传图片
+        <input type="file" accept="image/*" multiple style="display:none" onchange="uploadProblemImage('${item.id}','problem',this)" />
+      </label>
+
+      <div class="problem-section-title"><span class="icon solution-icon"></span>解决方案</div>
+      <div class="problem-edit-area">
+        <div class="editable problem-edit problem-edit-solution" contenteditable="true" placeholder="记录解决方法..." oninput="onProblemSolution('${item.id}', this)">${item.solution || ''}</div>
+        <button class="problem-bold-btn" title="加粗 (Ctrl+B)" onclick="boldInProblem('${item.id}', 'solution', this)">B</button>
+      </div>
+      ${solutionImagesHtml}
+      <label class="problem-upload-btn">
+        📷 上传图片
+        <input type="file" accept="image/*" multiple style="display:none" onchange="uploadProblemImage('${item.id}','solution',this)" />
+      </label>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function addProblem() {
+  problemsData.unshift({ id: uid(), problem: '', solution: '', problemImages: [], solutionImages: [] });
+  renderProblems();
+  saveProblems();
+}
+
+function deleteProblem(id) {
+  problemsData = problemsData.filter(p => p.id !== id);
+  renderProblems();
+  saveProblems();
+}
+
+function onProblemContent(id, el) {
+  const item = problemsData.find(p => p.id === id);
+  if (item) { item.problem = el.innerHTML; debounce('problem', saveProblems); }
+}
+
+function onProblemSolution(id, el) {
+  const item = problemsData.find(p => p.id === id);
+  if (item) { item.solution = el.innerHTML; debounce('problem', saveProblems); }
+}
+
+function boldInProblem(id, type, btn) {
+  const card = btn.closest('.problem-card');
+  const selector = type === 'problem' ? '.problem-edit-problem' : '.problem-edit-solution';
+  const editable = card.querySelector(selector);
+  editable.focus();
+  document.execCommand('bold', false, null);
+  const item = problemsData.find(p => p.id === id);
+  if (item) {
+    if (type === 'problem') item.problem = editable.innerHTML;
+    else item.solution = editable.innerHTML;
+    debounce('problem-bold', saveProblems);
+  }
+}
+
+function uploadProblemImage(id, type, input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const item = problemsData.find(p => p.id === id);
+  if (!item) return;
+
+  const imageKey = type === 'problem' ? 'problemImages' : 'solutionImages';
+  if (!item[imageKey]) item[imageKey] = [];
+
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      item[imageKey].push(e.target.result);
+      loaded++;
+      if (loaded === files.length) {
+        renderProblems();
+        saveProblems();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function deleteProblemImage(id, type, idx) {
+  const item = problemsData.find(p => p.id === id);
+  if (!item) return;
+  const imageKey = type === 'problem' ? 'problemImages' : 'solutionImages';
+  if (item[imageKey]) {
+    item[imageKey].splice(idx, 1);
+    renderProblems();
+    saveProblems();
+  }
+}
 
 // ========== 项目管理页 ==========
 let currentProjectId = null;
@@ -733,6 +929,10 @@ function saveHome() {
   dbPut('home', homeData);
 }
 
+function saveProblems() {
+  dbPut('problems', { key: 'problems', data: problemsData });
+}
+
 function saveProjects() {
   // 逐个保存项目
   projectsData.forEach(p => dbPut('projects', p));
@@ -786,12 +986,14 @@ function escHtml(str) {
 async function exportData() {
   // 确保最新数据已保存
   saveHome();
+  saveProblems();
   saveProjects();
 
   // 收集全部数据
   const exportObj = {
     _meta: { version: 1, exportedAt: new Date().toISOString(), app: 'NotesApp' },
     home: homeData,
+    problems: problemsData,
     projects: projectsData
   };
 
@@ -837,6 +1039,12 @@ async function importData(input) {
       saveHome();
     }
 
+    // 恢复问题数据
+    if (data.problems && Array.isArray(data.problems)) {
+      problemsData = data.problems;
+      saveProblems();
+    }
+
     // 恢复项目数据
     if (data.projects && Array.isArray(data.projects)) {
       projectsData = data.projects;
@@ -875,6 +1083,12 @@ async function init() {
   }
   renderHome();
 
+  // 加载问题数据
+  const problems = await dbGet('problems', 'problems');
+  if (problems && problems.data && Array.isArray(problems.data)) {
+    problemsData = problems.data;
+  }
+
   // 加载项目数据
   const idRecord = await dbGet('projects', '__project_ids__');
   if (idRecord && idRecord.ids) {
@@ -894,7 +1108,7 @@ async function init() {
   renderProjectTabs();
 
   // 空数据时显示导入提示
-  const hasData = homeData.career.length || homeData.todos.length || homeData.diaries.length;
+  const hasData = homeData.career.length || homeData.todos.length || homeData.diaries.length || problemsData.length > 0;
   const hintEl = document.getElementById('import-hint');
   if (!hasData && projectsData.every(p => !p.milestones.length && !p.devlogs.length && !p.issues.length)) {
     hintEl.style.display = 'block';
