@@ -195,9 +195,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .resource-sections { display: flex; gap: 24px; align-items: flex-start; }
 .resource-section { flex: 1; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 20px; min-height: calc(100vh - 200px); }
 .resource-section-header { font-size: 16px; font-weight: 600; color: #555; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; display: flex; align-items: center; gap: 8px; }
+.resource-section-header.common { color: #3498db; border-bottom-color: #3498db; }
 .resource-section-header.toread { color: #e67e22; border-bottom-color: #e67e22; }
 .resource-section-header.read { color: #27ae60; border-bottom-color: #27ae60; }
 .resource-section-header .badge { width: 8px; height: 8px; border-radius: 50%; }
+.resource-section-header .common .badge { background: #3498db; }
 .resource-section-header .toread .badge { background: #e67e22; }
 .resource-section-header .read .badge { background: #27ae60; }
 .resource-list { max-height: calc(100vh - 240px); overflow-y: auto; padding-right: 8px; }
@@ -293,17 +295,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     <div class="resource-content">
       <div class="resource-header">📚 资源收录</div>
       <div class="resource-sections">
+        <!-- 常用区域 -->
+        <div class="resource-section">
+          <div class="resource-section-header common"><span class="badge"></span>常用</div>
+          <div class="resource-list" id="resource-common-list"></div>
+          <button class="add-btn" onclick="addResource('common')" style="margin-top: 12px;">+ 添加资源</button>
+        </div>
         <!-- 待看区域 -->
         <div class="resource-section">
           <div class="resource-section-header toread"><span class="badge"></span>待看</div>
           <div class="resource-list" id="resource-toread-list"></div>
-          <button class="add-btn" onclick="addResource(false)" style="margin-top: 12px;">+ 添加资源</button>
+          <button class="add-btn" onclick="addResource('toread')" style="margin-top: 12px;">+ 添加资源</button>
         </div>
         <!-- 已看区域 -->
         <div class="resource-section">
           <div class="resource-section-header read"><span class="badge"></span>已看</div>
           <div class="resource-list" id="resource-read-list"></div>
-          <button class="add-btn" onclick="addResource(true)" style="margin-top: 12px;">+ 添加资源</button>
+          <button class="add-btn" onclick="addResource('read')" style="margin-top: 12px;">+ 添加资源</button>
         </div>
       </div>
     </div>
@@ -413,7 +421,7 @@ let homeData = {
 
 let problemsData = []; // [{id, problem(html), solution(html)}]
 
-let resourcesData = []; // [{id, url, note(html), images[], read: boolean}]
+let resourcesData = []; // [{id, url, note(html), images[], type: 'common'|'toread'|'read'}]
 
 let projectsData = []; // [{id, name, milestones:[], devlogs:[], issues:[]}]
 
@@ -851,13 +859,32 @@ function deleteProblemImage(id, type, idx) {
 
 // ========== 资源收录页 ==========
 function renderResources() {
+  const commonList = document.getElementById('resource-common-list');
   const toreadList = document.getElementById('resource-toread-list');
   const readList = document.getElementById('resource-read-list');
+  commonList.innerHTML = '';
   toreadList.innerHTML = '';
   readList.innerHTML = '';
 
+  // 调试：打印资源数据
+  console.log('Rendering resources:', resourcesData);
+
   resourcesData.forEach(item => {
-    const container = item.read ? readList : toreadList;
+    // 如果没有type字段，根据read值决定类型（兼容旧数据）
+    if (!item.type) {
+      item.type = item.read ? 'read' : 'toread';
+    }
+
+    if (item.type === 'common') {
+      var container = commonList;
+    } else if (item.type === 'toread') {
+      var container = toreadList;
+    } else if (item.type === 'read') {
+      var container = readList;
+    } else {
+      // 默认放在待看
+      var container = toreadList;
+    }
     const card = document.createElement('div');
     card.className = 'resource-item';
 
@@ -871,10 +898,19 @@ function renderResources() {
       imagesHtml += '</div>';
     }
 
+    // 常用资源不显示小方框和切换功能
+    let checkboxHtml = '';
+    if (item.type !== 'common') {
+      const isRead = item.type === 'read';
+      checkboxHtml = `
+        <div class="resource-check ${isRead ? 'checked' : ''}" onclick="toggleResource('${item.id}')"></div>
+      `;
+    }
+
     card.innerHTML = `
       <span class="delete-btn" onclick="deleteResource('${item.id}')">&times;</span>
       <div class="resource-item-content">
-        <div class="resource-check ${item.read ? 'checked' : ''}" onclick="toggleResource('${item.id}')"></div>
+        ${checkboxHtml}
         <div class="resource-main">
           <input type="text" class="resource-url-input" value="${escHtml(item.url)}" placeholder="资源链接 URL" oninput="onResourceUrl('${item.id}', this.value)" />
           <div class="resource-note-area">
@@ -892,8 +928,16 @@ function renderResources() {
   });
 }
 
-function addResource(read = false) {
-  resourcesData.unshift({ id: uid(), url: '', note: '', images: [], read: read });
+function addResource(type = 'toread') {
+  const resource = { id: uid(), url: '', note: '', images: [], type: type };
+  resourcesData.unshift(resource);
+
+  // 渲染前再次检查并设置type，避免任何可能的undefined值
+  const item = resourcesData[0];
+  if (!item.type) {
+    item.type = type || 'toread';
+  }
+
   renderResources();
   saveResources();
 }
@@ -907,7 +951,12 @@ function deleteResource(id) {
 function toggleResource(id) {
   const item = resourcesData.find(r => r.id === id);
   if (item) {
-    item.read = !item.read;
+    // 只在待看和已看之间切换，常用不切换
+    if (item.type === 'toread') {
+      item.type = 'read';
+    } else if (item.type === 'read') {
+      item.type = 'toread';
+    }
     renderResources();
     saveResources();
   }
@@ -1386,7 +1435,14 @@ async function importData(input) {
 
     // 恢复资源数据
     if (data.resources && Array.isArray(data.resources)) {
-      resourcesData = data.resources;
+      // 为旧版本的资源数据添加类型字段
+      resourcesData = data.resources.map(item => {
+        if (!item.type) {
+          // 如果没有type字段，根据read值决定类型
+          return { ...item, type: item.read ? 'read' : 'toread' };
+        }
+        return item;
+      });
       saveResources();
     }
 
@@ -1440,8 +1496,23 @@ async function init() {
 
   // 加载资源数据
   const resources = await dbGet('resources', 'resources');
-  if (resources && resources.data && Array.isArray(resources.data)) {
-    resourcesData = resources.data;
+  if (resources) {
+    if (Array.isArray(resources)) {
+      // 如果是直接保存的数组（旧格式）
+      resourcesData = resources;
+    } else if (resources.data && Array.isArray(resources.data)) {
+      // 如果是包装的对象格式
+      resourcesData = resources.data;
+    }
+
+    // 确保所有资源都有type字段
+    resourcesData = resourcesData.map(item => {
+      if (!item.type) {
+        // 兼容旧数据
+        return { ...item, type: item.read ? 'read' : 'toread' };
+      }
+      return item;
+    });
   }
 
   // 加载项目数据
