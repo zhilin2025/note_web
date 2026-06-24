@@ -53,8 +53,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .todo-checkbox:hover { border-color: #1a73e8; }
 .todo-checkbox.checked { background: #1a73e8; border-color: #1a73e8; }
 .todo-checkbox.checked::after { content: "✓"; color: #fff; font-size: 14px; font-weight: 700; }
-.todo-text { flex: 1; font-size: 14px; min-width: 0; cursor: pointer; }
-.todo-text.completed { color: #999; }
+.todo-input { flex: 1; font-size: 14px; min-width: 0; background: transparent; }
+.todo-input.completed { color: #999; text-decoration: line-through; opacity: 0.6; }
 .todo-item .delete-btn { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); }
 .todo-input { flex: 1; border: none; outline: none; font-size: 14px; background: transparent; font-family: inherit; }
 .todo-input:focus { border-bottom: 1px solid #1a73e8; }
@@ -487,7 +487,7 @@ function renderTodos() {
     div.className = `todo-item ${item.expanded ? 'expanded' : ''}`;
     div.innerHTML = `
       <div class="todo-checkbox ${item.done ? 'checked' : ''}" onclick="toggleTodo('${item.id}')"></div>
-      <div class="todo-text ${item.done ? 'completed' : ''}" onclick="toggleSubtasks('${item.id}')">${escHtml(item.text)}</div>
+      <input type="text" class="todo-input" value="${escHtml(item.text)}" placeholder="待办事项" oninput="onTodoText('${item.id}', this.value)" />
       <span class="subtasks-toggle" onclick="toggleSubtasks('${item.id}')">▶</span>
       <span class="delete-btn" onclick="deleteTodo('${item.id}')">&times;</span>
     `;
