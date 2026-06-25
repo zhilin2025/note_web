@@ -70,7 +70,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .subtask-checkbox { width: 18px; height: 18px; border: 2px solid #ccc; border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .subtask-checkbox.checked { background: #4caf50; border-color: #4caf50; }
 .subtask-checkbox.checked::after { content: "✓"; color: #fff; font-size: 12px; }
-.subtask-text { flex: 1; font-size: 13px; }
+.subtask-text { flex: 1; font-size: 13px; border: none; background: transparent; padding: 0; }
 .subtask-text.completed { text-decoration: line-through; opacity: 0.6; }
 .subtask-delete { cursor: pointer; color: #999; font-size: 14px; }
 .todo-content { margin-top: 8px; }
@@ -549,7 +549,7 @@ function renderSubtasksList(container, todoItem) {
       subtaskDiv.className = 'subtask-item';
       subtaskDiv.innerHTML = `
         <div class="subtask-checkbox ${subtask.done ? 'checked' : ''}" onclick="toggleSubtask('${todoItem.id}', ${idx})"></div>
-        <div class="subtask-text ${subtask.done ? 'completed' : ''}" oninput="onSubtaskText('${todoItem.id}', ${idx}, this)" contenteditable="true" placeholder="子任务内容">${escHtml(subtask.text)}</div>
+        <input type="text" class="subtask-text ${subtask.done ? 'completed' : ''}" value="${escHtml(subtask.text)}" placeholder="子任务内容" oninput="onSubtaskText('${todoItem.id}', ${idx}, this.value)" />
         <span class="subtask-delete" onclick="deleteSubtask('${todoItem.id}', ${idx})">&times;</span>
       `;
       container.appendChild(subtaskDiv);
@@ -558,7 +558,7 @@ function renderSubtasksList(container, todoItem) {
 }
 
 function addTodo() {
-  homeData.todos.push({ id: uid(), text: '', done: false, subtasks: [], content: '' });
+  homeData.todos.unshift({ id: uid(), text: '', done: false, subtasks: [], content: '' });
   renderTodos();
   saveHome();
 }
@@ -571,7 +571,23 @@ function deleteTodo(id) {
 
 function toggleTodo(id) {
   const item = homeData.todos.find(i => i.id === id);
-  if (item) { item.done = !item.done; renderTodos(); saveHome(); }
+  if (item) {
+    item.done = !item.done;
+
+    // 如果标记为已完成，移到列表末尾
+    if (item.done) {
+      homeData.todos = homeData.todos.filter(t => t.id !== id);
+      homeData.todos.push(item);
+    }
+    // 如果标记为未完成，移到列表开头
+    else {
+      homeData.todos = homeData.todos.filter(t => t.id !== id);
+      homeData.todos.unshift(item);
+    }
+
+    renderTodos();
+    saveHome();
+  }
 }
 
 function onTodoText(id, val) {
@@ -625,10 +641,10 @@ function toggleSubtask(todoId, idx) {
   }
 }
 
-function onSubtaskText(todoId, idx, el) {
+function onSubtaskText(todoId, idx, val) {
   const item = homeData.todos.find(t => t.id === todoId);
   if (item && item.subtasks) {
-    item.subtasks[idx].text = el.innerHTML;
+    item.subtasks[idx].text = val;
     debounce('subtask', saveHome);
   }
 }
@@ -636,11 +652,6 @@ function onSubtaskText(todoId, idx, el) {
 function onTodoContent(id, el) {
   const item = homeData.todos.find(i => i.id === id);
   if (item) { item.content = el.value; debounce('content', saveHome); }
-}
-
-function onTodoText(id, val) {
-  const item = homeData.todos.find(i => i.id === id);
-  if (item) { item.text = val; debounce('todo', saveHome); }
 }
 
 // --- 每日随记 ---
@@ -1128,7 +1139,7 @@ function renderDevlogs(project) {
   const btn = document.createElement('button');
   btn.className = 'add-btn';
   btn.textContent = '+ 添加';
-  btn.onclick = () => { project.devlogs.push({ id: uid(), time: '', content: '', images: [] }); renderDevlogs(project); saveProjects(); };
+  btn.onclick = () => { project.devlogs.unshift({ id: uid(), time: '', content: '', images: [] }); renderDevlogs(project); saveProjects(); };
   list.appendChild(btn);
 }
 
@@ -1184,7 +1195,7 @@ function renderIssues(project) {
     div.className = 'todo-item';
     div.innerHTML = `
       <div class="todo-checkbox ${i.done ? 'checked' : ''}" onclick="toggleIssue('${project.id}','${i.id}')"></div>
-      <div class="todo-text ${i.done ? 'completed' : ''}" contenteditable="true" placeholder="待解决问题" oninput="onIssueText('${project.id}','${i.id}',this)">${escHtml(i.content)}</div>
+      <input type="text" class="todo-input ${i.done ? 'completed' : ''}" value="${escHtml(i.content)}" placeholder="待解决问题" oninput="onIssueText('${project.id}','${i.id}',this.value)" />
       <span class="delete-btn" onclick="deleteIssue('${project.id}','${i.id}')">&times;</span>
     `;
     list.appendChild(div);
@@ -1209,9 +1220,9 @@ function toggleIssue(pid, iid) {
   if (i) { i.done = !i.done; renderIssues(p); saveProjects(); }
 }
 
-function onIssueText(pid, iid, el) {
+function onIssueText(pid, iid, val) {
   const i = projectsData.find(x => x.id === pid).issues.find(x => x.id === iid);
-  i.content = el.innerHTML; debounce('iss', saveProjects);
+  i.content = val; debounce('iss', saveProjects);
 }
 
 // ========== 项目增删 ==========
