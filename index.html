@@ -7,7 +7,6 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; }
-
 /* 导航 */
 .nav-tabs { display: flex; align-items: center; background: #fff; border-bottom: 2px solid #e0e0e0; padding: 0 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 .nav-tab { padding: 14px 28px; cursor: pointer; font-size: 15px; font-weight: 500; color: #666; border-bottom: 3px solid transparent; transition: all 0.2s; user-select: none; }
@@ -17,52 +16,71 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .nav-data-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; border: 1px solid #c8d6e5; background: #fff; color: #555; transition: all 0.2s; }
 .nav-data-btn:hover { border-color: #1a73e8; color: #1a73e8; background: #f0f6ff; }
 .nav-data-btn.export-btn:hover { border-color: #27ae60; color: #27ae60; background: #f0fff4; }
-
 /* 页面容器 */
 .page { display: none; padding: 20px; max-width: 1400px; margin: 0 auto; }
 .page.active { display: block; }
-
 /* 首页三列布局 */
 .home-columns { display: flex; gap: 20px; align-items: flex-start; }
 .note-column { flex: 1; background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); overflow: hidden; min-width: 0; }
 .column-header { padding: 16px 20px; font-size: 16px; font-weight: 600; color: #fff; background: linear-gradient(135deg, #1a73e8, #4285f4); }
 .column-body { padding: 12px; min-height: 200px; }
-
 /* 卡片 */
-.card { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 10px; position: relative; border: 1px solid #e8eaed; transition: box-shadow 0.2s; }
+.card { background: #f8f9fa; border-radius: 8px; padding: 12px; margin-bottom: 10px; position: relative; border: 1px solid #e8eaed; transition: box-shadow 0.2s; cursor: move; }
 .card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
 .card .delete-btn { position: absolute; top: 6px; right: 8px; cursor: pointer; color: #999; font-size: 18px; line-height: 1; padding: 2px 6px; border-radius: 4px; transition: all 0.15s; }
 .card .delete-btn:hover { color: #e53935; background: #fce4ec; }
-
+/* 拖拽排序样式 */
+.card.dragging,
+.todo-item.dragging {
+  opacity: 0.4;
+}
+.card.drag-over-top,
+.todo-item.drag-over-top {
+  border-top: 2px solid #1a73e8;
+}
+.card.drag-over-bottom,
+.todo-item.drag-over-bottom {
+  border-bottom: 2px solid #1a73e8;
+}
 /* 输入框通用 */
 .card input[type="text"], .card textarea, .card .editable { width: 100%; border: 1px solid #e0e0e0; border-radius: 6px; padding: 8px 10px; font-size: 14px; font-family: inherit; outline: none; transition: border-color 0.2s; background: #fff; }
 .card input[type="text"]:focus, .card textarea:focus, .card .editable:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.12); }
 .card textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
 .card .editable { min-height: 40px; line-height: 1.5; overflow-y: auto; }
 .card .editable img { max-width: 200px; max-height: 150px; border-radius: 4px; margin: 4px 2px; cursor: zoom-in; display: inline-block; vertical-align: middle; }
-
 /* 左侧 - 职业方向&技术栈 */
 .career-title { color: blue; font-weight: bold; font-size: 14px; margin-bottom: 6px; }
 .career-content { color: lightblue; font-weight: normal; font-size: 14px; }
-
 /* 中间 - 待办事项 */
-.todo-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; margin-bottom: 6px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e8eaed; position: relative; transition: all 0.2s; }
+.todo-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 12px; margin-bottom: 6px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e8eaed; position: relative; transition: all 0.2s; cursor: move; }
 .todo-item.expanded { background: #fff; border: 1px solid #1a73e8; box-shadow: 0 2px 8px rgba(26,115,232,0.1); }
 .todo-item.expanded .toggle-subtasks { transform: rotate(90deg); color: #1a73e8; }
-.todo-checkbox { width: 22px; height: 22px; border: 2px solid #bbb; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; user-select: none; }
+.todo-checkbox { width: 22px; height: 22px; border: 2px solid #bbb; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.15s; user-select: none; margin-top: 2px; }
 .todo-checkbox:hover { border-color: #1a73e8; }
 .todo-checkbox.checked { background: #1a73e8; border-color: #1a73e8; }
 .todo-checkbox.checked::after { content: "✓"; color: #fff; font-size: 14px; font-weight: 700; }
-.todo-input { flex: 1; font-size: 14px; min-width: 0; background: transparent; }
+.todo-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  background: transparent;
+  font-family: inherit;
+  min-height: 22px;
+  line-height: 1.4;
+  resize: none;
+  overflow-y: hidden;
+  padding: 0;
+  color: inherit;
+  min-width: 0;
+}
+.todo-input:focus { border-bottom: 1px solid #1a73e8; }
 .todo-input.completed { color: #999; text-decoration: line-through; opacity: 0.6; }
 .todo-item .delete-btn { position: absolute; top: 50%; right: 8px; transform: translateY(-50%); }
-.todo-input { flex: 1; border: none; outline: none; font-size: 14px; background: transparent; font-family: inherit; }
-.todo-input:focus { border-bottom: 1px solid #1a73e8; }
-
 /* 子任务区域 */
-.subtasks-toggle { cursor: pointer; font-size: 16px; color: #666; transition: all 0.2s; }
+.subtasks-toggle { cursor: pointer; font-size: 16px; color: #666; transition: all 0.2s; flex-shrink: 0; margin-top: 3px; }
 .todo-item.expanded .subtasks-toggle { color: #1a73e8; }
-.subtasks-section { display: none; margin-top: 12px; padding: 12px; background: #f5f7fa; border-radius: 8px; border: 1px solid #e0e6ed; margin-bottom: 8px; }
+.subtasks-section { display: none; margin-top: 12px; padding: 12px; background: #f5f7fa; border-radius: 8px; border: 1px solid #e0e6ed; margin-bottom: 8px; width: 100%; }
 .todo-item.expanded .subtasks-section { display: block; }
 .subtasks-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .subtasks-list { margin-bottom: 12px; }
@@ -76,7 +94,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .todo-content { margin-top: 8px; }
 .todo-content textarea { width: 100%; min-height: 80px; border: 1px solid #e0e6ed; border-radius: 8px; padding: 8px 10px; font-size: 13px; line-height: 1.5; resize: vertical; font-family: inherit; outline: none; transition: border-color 0.2s; }
 .todo-content textarea:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.1); }
-
 /* 右侧 - 每日随记 */
 .diary-time { margin-bottom: 6px; }
 .diary-title { margin-bottom: 6px; }
@@ -85,11 +102,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .bold-btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 28px; background: #e8eaed; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-weight: 900; font-size: 14px; color: #333; margin-top: 4px; transition: all 0.15s; user-select: none; }
 .bold-btn:hover { background: #d0d0d0; }
 .bold-btn:active { background: #bbb; }
-
 /* 添加按钮 */
 .add-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border: 2px dashed #c8d6e5; border-radius: 8px; background: transparent; cursor: pointer; color: #1a73e8; font-size: 14px; font-weight: 500; transition: all 0.2s; margin-bottom: 10px; }
 .add-btn:hover { border-color: #1a73e8; background: #f0f6ff; }
-
 /* === 项目管理页 === */
 .project-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; padding: 16px; background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); align-items: center; }
 .project-tab { padding: 8px 20px; border-radius: 20px; cursor: pointer; font-size: 14px; font-weight: 500; color: #555; background: #f0f2f5; border: 2px solid transparent; transition: all 0.2s; user-select: none; }
@@ -101,18 +116,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .btn-add-project:hover { background: #1558b0; }
 .btn-delete-project { background: #fff; color: #e53935; border: 1px solid #e53935; }
 .btn-delete-project:hover { background: #fce4ec; }
-
 /* 项目三列 */
 .project-columns { display: flex; gap: 20px; align-items: flex-start; }
 .project-column { flex: 1; background: #fff; border-radius: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.08); overflow: hidden; min-width: 0; }
-
 /* 图片区域 */
 .image-gallery { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .image-thumb { position: relative; width: 80px; height: 80px; border-radius: 6px; overflow: hidden; border: 1px solid #e0e0e0; }
 .image-thumb img { width: 100%; height: 100%; object-fit: cover; cursor: zoom-in; }
 .image-thumb .img-delete { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; background: rgba(0,0,0,0.6); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; opacity: 0; transition: opacity 0.15s; }
 .image-thumb:hover .img-delete { opacity: 1; }
-
 /* 图片灯箱 */
 .lightbox-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; cursor: zoom-out; }
 .lightbox-overlay.show { display: flex; }
@@ -121,15 +133,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .lightbox-close:hover { opacity: 1; }
 .upload-btn { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border: 1px solid #c8d6e5; border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px; color: #1a73e8; margin-top: 6px; transition: all 0.2s; }
 .upload-btn:hover { background: #f0f6ff; border-color: #1a73e8; }
-
 /* 项目区列头颜色 */
 .project-column:nth-child(1) .column-header { background: linear-gradient(135deg, #e67e22, #f39c12); }
 .project-column:nth-child(2) .column-header { background: linear-gradient(135deg, #27ae60, #2ecc71); }
 .project-column:nth-child(3) .column-header { background: linear-gradient(135deg, #8e44ad, #9b59b6); }
-
 /* 自动扩展的编辑区 */
 .auto-expand { min-height: 40px; max-height: 300px; overflow-y: auto; word-break: break-word; }
-
 /* 弹窗 */
 .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 999; align-items: center; justify-content: center; }
 .modal-overlay.show { display: flex; }
@@ -145,49 +154,40 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .modal-btn-confirm:hover { background: #1558b0; }
 .modal-btn-danger { background: #e53935; color: #fff; }
 .modal-btn-danger:hover { background: #c62828; }
-
 /* 空状态 */
 .empty-state { text-align: center; padding: 30px 20px; color: #aaa; font-size: 14px; }
 .import-hint { text-align: center; padding: 12px; margin: 10px 20px; background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; color: #8d6e00; font-size: 13px; display: none; }
 .import-hint a { color: #1a73e8; cursor: pointer; text-decoration: underline; }
-
 /* === 问题记录页 === */
 .problem-page-layout { width: 100%; min-height: calc(100vh - 60px); padding: 20px; }
-
 /* 内容区 - 铺满整个页面 */
 .problem-content { width: 100%; max-width: 1600px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); padding: 24px; }
 .problem-header { font-size: 20px; font-weight: 600; color: #333; margin-bottom: 20px; padding-bottom: 14px; border-bottom: 2px solid #f0f0f0; }
 .problem-list { width: 100%; max-height: calc(100vh - 180px); overflow-y: auto; padding-right: 12px; }
-
 /* 问题卡片 */
 .problem-card { background: #fafafa; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #e8eaed; position: relative; transition: box-shadow 0.2s; }
 .problem-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .problem-card .delete-btn { position: absolute; top: 10px; right: 10px; cursor: pointer; color: #999; font-size: 20px; line-height: 1; padding: 4px 8px; border-radius: 6px; transition: all 0.15s; }
 .problem-card .delete-btn:hover { color: #e53935; background: #fce4ec; }
-
 /* 问题标题区域 */
 .problem-section-title { font-size: 13px; font-weight: 600; color: #666; margin: 12px 0 6px 0; display: flex; align-items: center; gap: 6px; }
 .problem-section-title.first { margin-top: 0; }
 .problem-section-title .icon { width: 16px; height: 16px; border-radius: 50%; display: inline-block; }
 .problem-section-title .problem-icon { background: #e74c3c; }
 .problem-section-title .solution-icon { background: #27ae60; }
-
 /* 问题编辑区 */
 .problem-edit-area { position: relative; }
 .problem-edit { min-height: 60px; line-height: 1.6; padding: 10px 12px; border: 1px solid #ddd; border-radius: 8px; background: #fff; outline: none; transition: border-color 0.2s; }
 .problem-edit:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26,115,232,0.1); }
 .problem-edit img { max-width: 200px; max-height: 150px; border-radius: 6px; margin: 6px 4px; cursor: zoom-in; display: inline-block; vertical-align: middle; }
-
 /* 加粗按钮 */
 .problem-bold-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 26px; background: #e8eaed; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; font-weight: 900; font-size: 13px; color: #333; transition: all 0.15s; user-select: none; position: absolute; top: 4px; right: 4px; }
 .problem-bold-btn:hover { background: #d0d0d0; }
 .problem-bold-btn:active { background: #bbb; }
-
 /* 上传图片按钮 */
 .problem-upload-btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border: 1px solid #c8d6e5; border-radius: 6px; background: #fff; cursor: pointer; font-size: 12px; color: #1a73e8; margin-top: 6px; transition: all 0.2s; }
 .problem-upload-btn:hover { background: #f0f6ff; border-color: #1a73e8; }
 .problem-upload-btn input { display: none; }
-
 /* === 资源收录页 === */
 .resource-page-layout { width: 100%; min-height: calc(100vh - 60px); padding: 20px; }
 .resource-content { width: 100%; max-width: 1800px; margin: 0 auto; }
@@ -227,7 +227,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .resource-upload-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border: 1px solid #c8d6e5; border-radius: 6px; background: #fff; cursor: pointer; font-size: 11px; color: #1a73e8; margin-top: 6px; transition: all 0.2s; }
 .resource-upload-btn:hover { background: #f0f6ff; border-color: #1a73e8; }
 .resource-upload-btn input { display: none; }
-
 /* 响应式 */
 @media (max-width: 900px) {
   .home-columns, .project-columns { flex-direction: column; }
@@ -240,7 +239,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 </style>
 </head>
 <body>
-
 <!-- 导航 -->
 <div class="nav-tabs">
   <div class="nav-tab active" data-page="home" onclick="switchPage('home')">首页</div>
@@ -253,7 +251,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)" />
   </div>
 </div>
-
 <!-- 首页 -->
 <div id="page-home" class="page active">
   <div class="import-hint" id="import-hint">
@@ -277,7 +274,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     </div>
   </div>
 </div>
-
 <!-- 问题记录页 -->
 <div id="page-problems" class="page">
   <div class="problem-page-layout">
@@ -288,7 +284,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     </div>
   </div>
 </div>
-
 <!-- 资源收录页 -->
 <div id="page-resources" class="page">
   <div class="resource-page-layout">
@@ -317,7 +312,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     </div>
   </div>
 </div>
-
 <!-- 项目管理页 -->
 <div id="page-projects" class="page">
   <div class="project-tabs" id="project-tabs-bar">
@@ -327,7 +321,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     <!-- 动态项目内容 -->
   </div>
 </div>
-
 <!-- 弹窗 -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal-box">
@@ -339,7 +332,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     </div>
   </div>
 </div>
-
 <!-- 确认弹窗 -->
 <div class="modal-overlay" id="confirm-overlay">
   <div class="modal-box">
@@ -351,25 +343,21 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
     </div>
   </div>
 </div>
-
 <!-- 图片灯箱 -->
 <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
   <span class="lightbox-close">&times;</span>
   <img id="lightbox-img" src="" alt="大图预览" />
 </div>
-
 <script>
 // ========== IndexedDB ==========
 const DB_NAME = 'NotesAppDB';
 const DB_VERSION = 2;
 let db = null;
-
 function openDB() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = (e) => {
       const db = e.target.result;
-
       // 版本升级时创建所有需要的存储空间
       if (!db.objectStoreNames.contains('home')) db.createObjectStore('home', { keyPath: 'key' });
       if (!db.objectStoreNames.contains('problems')) db.createObjectStore('problems', { keyPath: 'key' });
@@ -383,7 +371,6 @@ function openDB() {
     req.onerror = (e) => reject(e);
   });
 }
-
 function dbGet(store, key) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(store, 'readonly');
@@ -393,7 +380,6 @@ function dbGet(store, key) {
     req.onerror = (e) => reject(e);
   });
 }
-
 function dbPut(store, value) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(store, 'readwrite');
@@ -403,12 +389,96 @@ function dbPut(store, value) {
     req.onerror = (e) => reject(e);
   });
 }
-
 // ========== 防抖 ==========
 const debounceTimers = {};
 function debounce(key, fn, ms = 300) {
   if (debounceTimers[key]) clearTimeout(debounceTimers[key]);
   debounceTimers[key] = setTimeout(() => { fn(); delete debounceTimers[key]; }, ms);
+}
+
+// ========== 文本框自动高度 ==========
+function autoResizeTextarea(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+// ========== 通用拖拽排序 ==========
+function initDragSort(container, dataArray, saveCallback, itemSelector = '.card') {
+  const items = container.querySelectorAll(itemSelector);
+  
+  items.forEach(item => {
+    item.draggable = true;
+    
+    item.addEventListener('dragstart', (e) => {
+      // 点击输入框内部不触发拖拽
+      if (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT' || e.target.closest('.editable')) {
+        e.preventDefault();
+        return;
+      }
+      item.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', '');
+    });
+    
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      container.querySelectorAll(itemSelector).forEach(el => {
+        el.classList.remove('drag-over-top', 'drag-over-bottom');
+      });
+    });
+    
+    item.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const draggingItem = container.querySelector('.dragging');
+      if (!draggingItem || draggingItem === item) return;
+      
+      const rect = item.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      
+      item.classList.remove('drag-over-top', 'drag-over-bottom');
+      if (e.clientY < midY) {
+        item.classList.add('drag-over-top');
+      } else {
+        item.classList.add('drag-over-bottom');
+      }
+    });
+    
+    item.addEventListener('dragleave', () => {
+      item.classList.remove('drag-over-top', 'drag-over-bottom');
+    });
+    
+    item.addEventListener('drop', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const draggingItem = container.querySelector('.dragging');
+      if (!draggingItem || draggingItem === item) return;
+      
+      const rect = item.getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      
+      if (e.clientY < midY) {
+        container.insertBefore(draggingItem, item);
+      } else {
+        container.insertBefore(draggingItem, item.nextSibling);
+      }
+      
+      item.classList.remove('drag-over-top', 'drag-over-bottom');
+      
+      // 同步数据数组顺序
+      const newOrder = [];
+      container.querySelectorAll(itemSelector).forEach(el => {
+        const id = el.dataset.id;
+        const itemData = dataArray.find(d => d.id === id);
+        if (itemData) newOrder.push(itemData);
+      });
+      dataArray.length = 0;
+      dataArray.push(...newOrder);
+      
+      if (saveCallback) saveCallback();
+    });
+  });
+  
+  container.addEventListener('dragover', e => e.preventDefault());
 }
 
 // ========== 数据模型 ==========
@@ -418,15 +488,10 @@ let homeData = {
   todos: [],    // [{id, text, done, subtasks:[], content(html)}]
   diaries: []   // [{id, time, title, content(html)}]
 };
-
 let problemsData = []; // [{id, problem(html), solution(html)}]
-
 let resourcesData = []; // [{id, url, note(html), images[], type: 'common'|'toread'|'read'}]
-
 let projectsData = []; // [{id, name, milestones:[], devlogs:[], issues:[]}]
-
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-
 // ========== 页面切换 ==========
 function switchPage(page) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
@@ -435,29 +500,26 @@ function switchPage(page) {
   if (page === 'problems') renderProblems();
   if (page === 'resources') renderResources();
 }
-
 // ========== 首页渲染 ==========
 function renderHome() {
   renderCareer();
   renderTodos();
   renderDiaries();
 }
-
 // --- 职业方向&技术栈 ---
 function renderCareer() {
   const list = document.getElementById('career-list');
   list.innerHTML = '';
-
   // 添加按钮放在列表上方
   const btn = document.createElement('button');
   btn.className = 'add-btn';
   btn.textContent = '+ 添加';
   btn.onclick = addCareer;
   list.appendChild(btn);
-
   homeData.career.forEach((item) => {
     const card = document.createElement('div');
     card.className = 'card';
+    card.dataset.id = item.id;
     card.innerHTML = `
       <span class="delete-btn" onclick="deleteCareer('${item.id}')">&times;</span>
       <input type="text" class="career-title" value="${escHtml(item.title)}" placeholder="标题" oninput="onCareerTitle('${item.id}', this.value)" />
@@ -465,59 +527,53 @@ function renderCareer() {
     `;
     list.appendChild(card);
   });
+  // 初始化拖拽排序
+  initDragSort(list, homeData.career, saveHome, '.card');
 }
-
 function addCareer() {
-  homeData.career.push({ id: uid(), title: '', content: '' });
+  homeData.career.unshift({ id: uid(), title: '', content: '' });
   renderCareer();
   saveHome();
 }
-
 function deleteCareer(id) {
   homeData.career = homeData.career.filter(i => i.id !== id);
   renderCareer();
   saveHome();
 }
-
 function onCareerTitle(id, val) {
   const item = homeData.career.find(i => i.id === id);
   if (item) { item.title = val; debounce('career', saveHome); }
 }
-
 function onCareerContent(id, val) {
   const item = homeData.career.find(i => i.id === id);
   if (item) { item.content = val; debounce('career', saveHome); }
 }
-
 // --- 待办事项 ---
 function renderTodos() {
   const list = document.getElementById('todo-list');
   list.innerHTML = '';
-
   // 添加按钮放在列表上方
   const btn = document.createElement('button');
   btn.className = 'add-btn';
   btn.textContent = '+ 添加';
   btn.onclick = addTodo;
   list.appendChild(btn);
-
   homeData.todos.forEach((item) => {
     const div = document.createElement('div');
     div.className = `todo-item ${item.expanded ? 'expanded' : ''}`;
+    div.dataset.id = item.id;
     div.innerHTML = `
       <div class="todo-checkbox ${item.done ? 'checked' : ''}" onclick="toggleTodo('${item.id}')"></div>
-      <input type="text" class="todo-input" value="${escHtml(item.text)}" placeholder="待办事项" oninput="onTodoText('${item.id}', this.value)" />
+      <textarea class="todo-input ${item.done ? 'completed' : ''}" placeholder="待办事项" oninput="onTodoText('${item.id}', this.value); autoResizeTextarea(this)">${escHtml(item.text)}</textarea>
       <span class="subtasks-toggle" onclick="toggleSubtasks('${item.id}')">▶</span>
       <span class="delete-btn" onclick="deleteTodo('${item.id}')">&times;</span>
     `;
     list.appendChild(div);
-
     // 添加子任务区域（如果展开）
     if (item.expanded) {
       const subtasksSection = document.createElement('div');
       subtasksSection.className = 'subtasks-section';
       subtasksSection.dataset.todoId = item.id;
-
       // 添加子任务标题和按钮
       const subtasksHeader = document.createElement('div');
       subtasksHeader.className = 'subtasks-header';
@@ -526,14 +582,12 @@ function renderTodos() {
         <button class="add-btn" style="padding: 4px 10px; font-size: 12px;" onclick="addSubtask('${item.id}')">+ 添加子任务</button>
       `;
       subtasksSection.appendChild(subtasksHeader);
-
       // 添加子任务列表
       const subtasksList = document.createElement('div');
       subtasksList.className = 'subtasks-list';
       subtasksList.id = `subtasks-${item.id}`;
       renderSubtasksList(subtasksList, item);
       subtasksSection.appendChild(subtasksList);
-
       // 添加内容编辑区
       const todoContent = document.createElement('div');
       todoContent.className = 'todo-content';
@@ -541,12 +595,12 @@ function renderTodos() {
         <textarea placeholder="记录相关内容、想法、参考资料..." oninput="onTodoContent('${item.id}', this)">${item.content || ''}</textarea>
       `;
       subtasksSection.appendChild(todoContent);
-
       div.appendChild(subtasksSection);
     }
   });
+  // 初始化所有文本框高度
+  list.querySelectorAll('.todo-input').forEach(el => autoResizeTextarea(el));
 }
-
 function renderSubtasksList(container, todoItem) {
   container.innerHTML = '';
   if (todoItem.subtasks && todoItem.subtasks.length > 0) {
@@ -562,24 +616,20 @@ function renderSubtasksList(container, todoItem) {
     });
   }
 }
-
 function addTodo() {
   homeData.todos.unshift({ id: uid(), text: '', done: false, subtasks: [], content: '' });
   renderTodos();
   saveHome();
 }
-
 function deleteTodo(id) {
   homeData.todos = homeData.todos.filter(i => i.id !== id);
   renderTodos();
   saveHome();
 }
-
 function toggleTodo(id) {
   const item = homeData.todos.find(i => i.id === id);
   if (item) {
     item.done = !item.done;
-
     // 如果标记为已完成，移到列表末尾
     if (item.done) {
       homeData.todos = homeData.todos.filter(t => t.id !== id);
@@ -590,17 +640,14 @@ function toggleTodo(id) {
       homeData.todos = homeData.todos.filter(t => t.id !== id);
       homeData.todos.unshift(item);
     }
-
     renderTodos();
     saveHome();
   }
 }
-
 function onTodoText(id, val) {
   const item = homeData.todos.find(i => i.id === id);
   if (item) { item.text = val; debounce('todo', saveHome); }
 }
-
 function toggleSubtasks(id) {
   const item = homeData.todos.find(i => i.id === id);
   if (item) {
@@ -612,7 +659,6 @@ function toggleSubtasks(id) {
     }
   }
 }
-
 function addSubtask(todoId) {
   const item = homeData.todos.find(t => t.id === todoId);
   if (item) {
@@ -624,7 +670,6 @@ function addSubtask(todoId) {
     saveHome();
   }
 }
-
 function deleteSubtask(todoId, idx) {
   const item = homeData.todos.find(t => t.id === todoId);
   if (item && item.subtasks) {
@@ -635,7 +680,6 @@ function deleteSubtask(todoId, idx) {
     saveHome();
   }
 }
-
 function toggleSubtask(todoId, idx) {
   const item = homeData.todos.find(t => t.id === todoId);
   if (item && item.subtasks) {
@@ -646,7 +690,6 @@ function toggleSubtask(todoId, idx) {
     saveHome();
   }
 }
-
 function onSubtaskText(todoId, idx, val) {
   const item = homeData.todos.find(t => t.id === todoId);
   if (item && item.subtasks) {
@@ -654,24 +697,20 @@ function onSubtaskText(todoId, idx, val) {
     debounce('subtask', saveHome);
   }
 }
-
 function onTodoContent(id, el) {
   const item = homeData.todos.find(i => i.id === id);
   if (item) { item.content = el.value; debounce('content', saveHome); }
 }
-
 // --- 每日随记 ---
 function renderDiaries() {
   const list = document.getElementById('diary-list');
   list.innerHTML = '';
-
   // 添加按钮放在列表上方
   const btn = document.createElement('button');
   btn.className = 'add-btn';
   btn.textContent = '+ 添加';
   btn.onclick = addDiary;
   list.appendChild(btn);
-
   homeData.diaries.forEach((item) => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -687,34 +726,28 @@ function renderDiaries() {
     list.appendChild(card);
   });
 }
-
 function addDiary() {
   homeData.diaries.unshift({ id: uid(), time: '', title: '', content: '' });
   renderDiaries();
   saveHome();
 }
-
 function deleteDiary(id) {
   homeData.diaries = homeData.diaries.filter(i => i.id !== id);
   renderDiaries();
   saveHome();
 }
-
 function onDiaryTime(id, val) {
   const item = homeData.diaries.find(i => i.id === id);
   if (item) { item.time = val; debounce('diary', saveHome); }
 }
-
 function onDiaryTitle(id, val) {
   const item = homeData.diaries.find(i => i.id === id);
   if (item) { item.title = val; debounce('diary', saveHome); }
 }
-
 function onDiaryContent(id, el) {
   const item = homeData.diaries.find(i => i.id === id);
   if (item) { item.content = el.innerHTML; debounce('diary', saveHome); }
 }
-
 function boldInDiary(id, btn) {
   const card = btn.closest('.card');
   const editable = card.querySelector('.diary-content');
@@ -723,7 +756,6 @@ function boldInDiary(id, btn) {
   const item = homeData.diaries.find(i => i.id === id);
   if (item) { item.content = editable.innerHTML; debounce('diary-bold', saveHome); }
 }
-
 // Ctrl+B 支持
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
@@ -750,7 +782,6 @@ document.addEventListener('keydown', (e) => {
     }
   }
 });
-
 // ========== 问题记录页 ==========
 function renderProblems() {
   const list = document.getElementById('problem-list');
@@ -759,7 +790,6 @@ function renderProblems() {
     const card = document.createElement('div');
     card.className = 'problem-card';
     card.dataset.id = item.id;
-
     // 图片显示区域
     let problemImagesHtml = '';
     let solutionImagesHtml = '';
@@ -777,7 +807,6 @@ function renderProblems() {
       });
       solutionImagesHtml += '</div>';
     }
-
     card.innerHTML = `
       <span class="delete-btn" onclick="deleteProblem('${item.id}')">&times;</span>
       <div class="problem-section-title first"><span class="icon problem-icon"></span>问题描述</div>
@@ -790,7 +819,6 @@ function renderProblems() {
         📷 上传图片
         <input type="file" accept="image/*" multiple style="display:none" onchange="uploadProblemImage('${item.id}','problem',this)" />
       </label>
-
       <div class="problem-section-title"><span class="icon solution-icon"></span>解决方案</div>
       <div class="problem-edit-area">
         <div class="editable problem-edit problem-edit-solution" contenteditable="true" placeholder="记录解决方法..." oninput="onProblemSolution('${item.id}', this)">${item.solution || ''}</div>
@@ -805,29 +833,24 @@ function renderProblems() {
     list.appendChild(card);
   });
 }
-
 function addProblem() {
   problemsData.unshift({ id: uid(), problem: '', solution: '', problemImages: [], solutionImages: [] });
   renderProblems();
   saveProblems();
 }
-
 function deleteProblem(id) {
   problemsData = problemsData.filter(p => p.id !== id);
   renderProblems();
   saveProblems();
 }
-
 function onProblemContent(id, el) {
   const item = problemsData.find(p => p.id === id);
   if (item) { item.problem = el.innerHTML; debounce('problem', saveProblems); }
 }
-
 function onProblemSolution(id, el) {
   const item = problemsData.find(p => p.id === id);
   if (item) { item.solution = el.innerHTML; debounce('problem', saveProblems); }
 }
-
 function boldInProblem(id, type, btn) {
   const card = btn.closest('.problem-card');
   const selector = type === 'problem' ? '.problem-edit-problem' : '.problem-edit-solution';
@@ -841,16 +864,13 @@ function boldInProblem(id, type, btn) {
     debounce('problem-bold', saveProblems);
   }
 }
-
 function uploadProblemImage(id, type, input) {
   const files = Array.from(input.files);
   if (!files.length) return;
   const item = problemsData.find(p => p.id === id);
   if (!item) return;
-
   const imageKey = type === 'problem' ? 'problemImages' : 'solutionImages';
   if (!item[imageKey]) item[imageKey] = [];
-
   let loaded = 0;
   files.forEach(file => {
     const reader = new FileReader();
@@ -865,7 +885,6 @@ function uploadProblemImage(id, type, input) {
     reader.readAsDataURL(file);
   });
 }
-
 function deleteProblemImage(id, type, idx) {
   const item = problemsData.find(p => p.id === id);
   if (!item) return;
@@ -876,7 +895,6 @@ function deleteProblemImage(id, type, idx) {
     saveProblems();
   }
 }
-
 // ========== 资源收录页 ==========
 function renderResources() {
   const commonList = document.getElementById('resource-common-list');
@@ -885,16 +903,13 @@ function renderResources() {
   commonList.innerHTML = '';
   toreadList.innerHTML = '';
   readList.innerHTML = '';
-
   // 调试：打印资源数据
   console.log('Rendering resources:', resourcesData);
-
   resourcesData.forEach(item => {
     // 如果没有type字段，根据read值决定类型（兼容旧数据）
     if (!item.type) {
       item.type = item.read ? 'read' : 'toread';
     }
-
     if (item.type === 'common') {
       var container = commonList;
     } else if (item.type === 'toread') {
@@ -907,7 +922,6 @@ function renderResources() {
     }
     const card = document.createElement('div');
     card.className = 'resource-item';
-
     // 图片显示区域
     let imagesHtml = '';
     if (item.images && item.images.length > 0) {
@@ -917,7 +931,6 @@ function renderResources() {
       });
       imagesHtml += '</div>';
     }
-
     // 常用资源不显示小方框和切换功能
     let checkboxHtml = '';
     if (item.type !== 'common') {
@@ -926,7 +939,6 @@ function renderResources() {
         <div class="resource-check ${isRead ? 'checked' : ''}" onclick="toggleResource('${item.id}')"></div>
       `;
     }
-
     card.innerHTML = `
       <span class="delete-btn" onclick="deleteResource('${item.id}')">&times;</span>
       <div class="resource-item-content">
@@ -947,27 +959,22 @@ function renderResources() {
     container.appendChild(card);
   });
 }
-
 function addResource(type = 'toread') {
   const resource = { id: uid(), url: '', note: '', images: [], type: type };
   resourcesData.unshift(resource);
-
   // 渲染前再次检查并设置type，避免任何可能的undefined值
   const item = resourcesData[0];
   if (!item.type) {
     item.type = type || 'toread';
   }
-
   renderResources();
   saveResources();
 }
-
 function deleteResource(id) {
   resourcesData = resourcesData.filter(r => r.id !== id);
   renderResources();
   saveResources();
 }
-
 function toggleResource(id) {
   const item = resourcesData.find(r => r.id === id);
   if (item) {
@@ -981,25 +988,20 @@ function toggleResource(id) {
     saveResources();
   }
 }
-
 function onResourceUrl(id, val) {
   const item = resourcesData.find(r => r.id === id);
   if (item) { item.url = val; debounce('resource', saveResources); }
 }
-
 function onResourceNote(id, el) {
   const item = resourcesData.find(r => r.id === id);
   if (item) { item.note = el.innerHTML; debounce('resource', saveResources); }
 }
-
 function uploadResourceImage(id, input) {
   const files = Array.from(input.files);
   if (!files.length) return;
   const item = resourcesData.find(r => r.id === id);
   if (!item) return;
-
   if (!item.images) item.images = [];
-
   let loaded = 0;
   files.forEach(file => {
     const reader = new FileReader();
@@ -1014,7 +1016,6 @@ function uploadResourceImage(id, input) {
     reader.readAsDataURL(file);
   });
 }
-
 function deleteResourceImage(id, idx) {
   const item = resourcesData.find(r => r.id === id);
   if (!item) return;
@@ -1024,10 +1025,8 @@ function deleteResourceImage(id, idx) {
     saveResources();
   }
 }
-
 // ========== 项目管理页 ==========
 let currentProjectId = null;
-
 function renderProjectTabs() {
   const bar = document.getElementById('project-tabs-bar');
   bar.innerHTML = '';
@@ -1045,7 +1044,6 @@ function renderProjectTabs() {
     <button class="project-action-btn btn-delete-project" onclick="deleteProject()">删除项目</button>
   `;
   bar.appendChild(actions);
-
   if (!currentProjectId && projectsData.length > 0) {
     currentProjectId = projectsData[0].id;
     renderProjectTabs();
@@ -1053,7 +1051,6 @@ function renderProjectTabs() {
   }
   renderProjectContent();
 }
-
 function renderProjectContent() {
   const container = document.getElementById('project-content');
   const project = projectsData.find(p => p.id === currentProjectId);
@@ -1079,22 +1076,20 @@ function renderProjectContent() {
   renderDevlogs(project);
   renderIssues(project);
 }
-
 // --- 时间节点 ---
 function renderMilestones(project) {
   const list = document.getElementById('milestone-list');
   list.innerHTML = '';
-
   // 添加按钮放在列表上方
   const btn = document.createElement('button');
   btn.className = 'add-btn';
   btn.textContent = '+ 添加';
-  btn.onclick = () => { project.milestones.push({ id: uid(), time: '', content: '' }); renderMilestones(project); saveProjects(); };
+  btn.onclick = () => { project.milestones.unshift({ id: uid(), time: '', content: '' }); renderMilestones(project); saveProjects(); };
   list.appendChild(btn);
-
   project.milestones.forEach(m => {
     const card = document.createElement('div');
     card.className = 'card';
+    card.dataset.id = m.id;
     card.innerHTML = `
       <span class="delete-btn" onclick="deleteMilestone('${project.id}','${m.id}')">&times;</span>
       <input type="text" value="${escHtml(m.time)}" placeholder="时间" oninput="onMilestoneTime('${project.id}','${m.id}',this.value)" />
@@ -1102,37 +1097,33 @@ function renderMilestones(project) {
     `;
     list.appendChild(card);
   });
+  // 初始化拖拽排序
+  initDragSort(list, project.milestones, saveProjects, '.card');
 }
-
 function deleteMilestone(pid, mid) {
   const p = projectsData.find(x => x.id === pid);
   p.milestones = p.milestones.filter(m => m.id !== mid);
   renderMilestones(p);
   saveProjects();
 }
-
 function onMilestoneTime(pid, mid, val) {
   const m = projectsData.find(x => x.id === pid).milestones.find(x => x.id === mid);
   m.time = val; debounce('ms', saveProjects);
 }
-
 function onMilestoneContent(pid, mid, el) {
   const m = projectsData.find(x => x.id === pid).milestones.find(x => x.id === mid);
   m.content = el.innerHTML; debounce('ms', saveProjects);
 }
-
 // --- 开发记录 ---
 function renderDevlogs(project) {
   const list = document.getElementById('devlog-list');
   list.innerHTML = '';
-
   // 添加按钮放在列表上方
   const btn = document.createElement('button');
   btn.className = 'add-btn';
   btn.textContent = '+ 添加';
   btn.onclick = () => { project.devlogs.unshift({ id: uid(), time: '', content: '', images: [] }); renderDevlogs(project); saveProjects(); };
   list.appendChild(btn);
-
   project.devlogs.forEach(d => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -1157,24 +1148,20 @@ function renderDevlogs(project) {
     list.appendChild(card);
   });
 }
-
 function deleteDevlog(pid, did) {
   const p = projectsData.find(x => x.id === pid);
   p.devlogs = p.devlogs.filter(d => d.id !== did);
   renderDevlogs(p);
   saveProjects();
 }
-
 function onDevlogTime(pid, did, val) {
   const d = projectsData.find(x => x.id === pid).devlogs.find(x => x.id === did);
   d.time = val; debounce('dev', saveProjects);
 }
-
 function onDevlogContent(pid, did, el) {
   const d = projectsData.find(x => x.id === pid).devlogs.find(x => x.id === did);
   d.content = el.innerHTML; debounce('dev', saveProjects);
 }
-
 function uploadDevlogImage(pid, did, input) {
   const files = Array.from(input.files);
   if (!files.length) return;
@@ -1193,56 +1180,53 @@ function uploadDevlogImage(pid, did, input) {
     reader.readAsDataURL(file);
   });
 }
-
 function deleteDevlogImage(pid, did, idx) {
   const d = projectsData.find(x => x.id === pid).devlogs.find(x => x.id === did);
   d.images.splice(idx, 1);
   renderDevlogs(projectsData.find(x => x.id === pid));
   saveProjects();
 }
-
 // --- 待解决问题 ---
 function renderIssues(project) {
   const list = document.getElementById('issue-list');
   list.innerHTML = '';
-
   // 添加按钮放在列表上方
   const btn = document.createElement('button');
   btn.className = 'add-btn';
   btn.textContent = '+ 添加';
-  btn.onclick = () => { project.issues.push({ id: uid(), content: '', done: false }); renderIssues(project); saveProjects(); };
+  btn.onclick = () => { project.issues.unshift({ id: uid(), content: '', done: false }); renderIssues(project); saveProjects(); };
   list.appendChild(btn);
-
   project.issues.forEach(i => {
     const div = document.createElement('div');
     div.className = 'todo-item';
+    div.dataset.id = i.id;
     div.innerHTML = `
       <div class="todo-checkbox ${i.done ? 'checked' : ''}" onclick="toggleIssue('${project.id}','${i.id}')"></div>
-      <input type="text" class="todo-input ${i.done ? 'completed' : ''}" value="${escHtml(i.content)}" placeholder="待解决问题" oninput="onIssueText('${project.id}','${i.id}',this.value)" />
+      <textarea class="todo-input ${i.done ? 'completed' : ''}" placeholder="待解决问题" oninput="onIssueText('${project.id}','${i.id}',this.value); autoResizeTextarea(this)">${escHtml(i.content)}</textarea>
       <span class="delete-btn" onclick="deleteIssue('${project.id}','${i.id}')">&times;</span>
     `;
     list.appendChild(div);
   });
+  // 初始化所有文本框高度
+  list.querySelectorAll('.todo-input').forEach(el => autoResizeTextarea(el));
+  // 初始化拖拽排序
+  initDragSort(list, project.issues, saveProjects, '.todo-item');
 }
-
 function deleteIssue(pid, iid) {
   const p = projectsData.find(x => x.id === pid);
   p.issues = p.issues.filter(i => i.id !== iid);
   renderIssues(p);
   saveProjects();
 }
-
 function toggleIssue(pid, iid) {
   const p = projectsData.find(x => x.id === pid);
   const i = p.issues.find(x => x.id === iid);
   if (i) { i.done = !i.done; renderIssues(p); saveProjects(); }
 }
-
 function onIssueText(pid, iid, val) {
   const i = projectsData.find(x => x.id === pid).issues.find(x => x.id === iid);
   i.content = val; debounce('iss', saveProjects);
 }
-
 // ========== 项目增删 ==========
 function addProject() {
   showModal('添加项目', '请输入项目名称', (name) => {
@@ -1254,7 +1238,6 @@ function addProject() {
     saveProjects();
   });
 }
-
 function deleteProject() {
   if (!currentProjectId) return;
   const proj = projectsData.find(p => p.id === currentProjectId);
@@ -1266,7 +1249,6 @@ function deleteProject() {
     saveProjects();
   });
 }
-
 // ========== 弹窗 ==========
 let modalCallback = null;
 function showModal(title, placeholder, callback) {
@@ -1278,22 +1260,18 @@ function showModal(title, placeholder, callback) {
   modalCallback = callback;
   setTimeout(() => input.focus(), 100);
 }
-
 function closeModal() {
   document.getElementById('modal-overlay').classList.remove('show');
   modalCallback = null;
 }
-
 document.getElementById('modal-confirm').onclick = () => {
   const val = document.getElementById('modal-input').value;
   if (modalCallback) modalCallback(val);
   closeModal();
 };
-
 document.getElementById('modal-input').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') { document.getElementById('modal-confirm').click(); }
 });
-
 let confirmCallback = null;
 function showConfirm(title, message, callback) {
   document.getElementById('confirm-title').textContent = title;
@@ -1301,30 +1279,24 @@ function showConfirm(title, message, callback) {
   document.getElementById('confirm-overlay').classList.add('show');
   confirmCallback = callback;
 }
-
 function closeConfirm() {
   document.getElementById('confirm-overlay').classList.remove('show');
   confirmCallback = null;
 }
-
 document.getElementById('confirm-ok').onclick = () => {
   if (confirmCallback) confirmCallback();
   closeConfirm();
 };
-
 // ========== 保存 ==========
 function saveHome() {
   if (db) dbPut('home', homeData);
 }
-
 function saveProblems() {
   if (db) dbPut('problems', { key: 'problems', data: problemsData });
 }
-
 function saveResources() {
   if (db) dbPut('resources', { key: 'resources', data: resourcesData });
 }
-
 function saveProjects() {
   if (!db) return;
   // 逐个保存项目
@@ -1333,7 +1305,6 @@ function saveProjects() {
   // 简单做法：维护一个项目ID列表
   dbPut('projects', { id: '__project_ids__', ids: projectsData.map(p => p.id) });
 }
-
 function saveAllData() {
   // 确保所有数据都保存到数据库
   if (db) {
@@ -1343,22 +1314,18 @@ function saveAllData() {
     saveProjects();
   }
 }
-
 // ========== 图片灯箱 ==========
 function openLightbox(src) {
   document.getElementById('lightbox-img').src = src;
   document.getElementById('lightbox').classList.add('show');
 }
-
 function closeLightbox() {
   document.getElementById('lightbox').classList.remove('show');
   document.getElementById('lightbox-img').src = '';
 }
-
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeLightbox();
 });
-
 // 全局图片点击事件委托：缩略图和编辑区内粘贴图片均可点击放大
 document.addEventListener('click', (e) => {
   const img = e.target.closest('img');
@@ -1388,7 +1355,6 @@ document.addEventListener('click', (e) => {
     return;
   }
 });
-
 // ========== 工具函数 ==========
 function escHtml(str) {
   if (!str) return '';
@@ -1396,7 +1362,6 @@ function escHtml(str) {
   div.textContent = str;
   return div.innerHTML;
 }
-
 // ========== 导出 / 导入 ==========
 async function exportData() {
   // 确保最新数据已保存
@@ -1404,7 +1369,6 @@ async function exportData() {
   saveProblems();
   saveResources();
   saveProjects();
-
   // 收集全部数据
   const exportObj = {
     _meta: { version: 1, exportedAt: new Date().toISOString(), app: 'NotesApp' },
@@ -1413,11 +1377,9 @@ async function exportData() {
     resources: resourcesData,
     projects: projectsData
   };
-
   const json = JSON.stringify(exportObj, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-
   const a = document.createElement('a');
   a.href = url;
   // 文件名带日期方便区分
@@ -1428,40 +1390,33 @@ async function exportData() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 }
-
 async function importData(input) {
   const file = input.files && input.files[0];
   if (!file) return;
-
   try {
     const text = await file.text();
     const data = JSON.parse(text);
-
     // 基本校验
     if (!data._meta || data._meta.app !== 'NotesApp') {
       alert('文件格式不正确，请选择由本应用导出的 JSON 文件。');
       input.value = '';
       return;
     }
-
     const msg = '导入将覆盖当前所有数据，确定继续吗？\n\n建议先点击"导出数据"备份当前数据。';
     if (!confirm(msg)) {
       input.value = '';
       return;
     }
-
     // 恢复首页数据
     if (data.home) {
       homeData = { key: 'home', ...data.home };
       saveHome();
     }
-
     // 恢复问题数据
     if (data.problems && Array.isArray(data.problems)) {
       problemsData = data.problems;
       saveProblems();
     }
-
     // 恢复资源数据
     if (data.resources && Array.isArray(data.resources)) {
       // 为旧版本的资源数据添加类型字段
@@ -1474,7 +1429,6 @@ async function importData(input) {
       });
       saveResources();
     }
-
     // 恢复项目数据
     if (data.projects && Array.isArray(data.projects)) {
       projectsData = data.projects;
@@ -1486,26 +1440,21 @@ async function importData(input) {
       projectsData.forEach(p => store.put(p));
       store.put({ id: '__project_ids__', ids: projectsData.map(p => p.id) });
     }
-
     // 重新渲染
     renderHome();
     if (projectsData.length > 0) {
       currentProjectId = projectsData[0].id;
     }
     renderProjectTabs();
-
     alert('数据导入成功！');
   } catch (e) {
     alert('导入失败：文件解析错误。\n' + e.message);
   }
-
   input.value = '';
 }
-
 // ========== 初始化 ==========
 async function init() {
   await openDB();
-
   // 加载首页数据
   const home = await dbGet('home', 'home');
   if (home && home.career) {
@@ -1516,13 +1465,11 @@ async function init() {
     saveHome();
   }
   renderHome();
-
   // 加载问题数据
   const problems = await dbGet('problems', 'problems');
   if (problems && problems.data && Array.isArray(problems.data)) {
     problemsData = problems.data;
   }
-
   // 加载资源数据
   const resources = await dbGet('resources', 'resources');
   if (resources) {
@@ -1533,7 +1480,6 @@ async function init() {
       // 如果是包装的对象格式
       resourcesData = resources.data;
     }
-
     // 确保所有资源都有type字段
     resourcesData = resourcesData.map(item => {
       if (!item.type) {
@@ -1543,7 +1489,6 @@ async function init() {
       return item;
     });
   }
-
   // 加载项目数据
   const idRecord = await dbGet('projects', '__project_ids__');
   if (idRecord && idRecord.ids) {
@@ -1553,20 +1498,16 @@ async function init() {
       if (proj && proj.id) projectsData.push(proj);
     }
   }
-
   // 默认示例项目
   if (projectsData.length === 0) {
     projectsData.push({ id: uid(), name: '示例项目', milestones: [], devlogs: [], issues: [] });
     saveProjects();
   }
-
   currentProjectId = projectsData[0].id;
   renderProjectTabs();
-
   // 如果有数据，渲染其他页面
   if (problemsData.length > 0) renderProblems();
   if (resourcesData.length > 0) renderResources();
-
   // 空数据时显示导入提示
   const hasData = homeData.career.length || homeData.todos.length || homeData.diaries.length || problemsData.length > 0 || resourcesData.length > 0;
   const hintEl = document.getElementById('import-hint');
@@ -1574,7 +1515,6 @@ async function init() {
     hintEl.style.display = 'block';
   }
 }
-
 init();
 </script>
 </body>
