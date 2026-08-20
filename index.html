@@ -87,7 +87,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
 .bold-btn:active { background: #bbb; }
 
 /* 添加按钮 */
-.add-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border: 2px dashed #c8d6e5; border-radius: 8px; background: transparent; cursor: pointer; color: #1a73e8; font-size: 14px; font-weight: 500; transition: all 0.2s; margin-top: 6px; }
+.add-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 10px; border: 2px dashed #c8d6e5; border-radius: 8px; background: transparent; cursor: pointer; color: #1a73e8; font-size: 14px; font-weight: 500; transition: all 0.2s; margin-bottom: 10px; }
 .add-btn:hover { border-color: #1a73e8; background: #f0f6ff; }
 
 /* === 项目管理页 === */
@@ -283,8 +283,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
   <div class="problem-page-layout">
     <div class="problem-content">
       <div class="problem-header">📋 问题与解决方案</div>
+      <button class="add-btn" onclick="addProblem()">+ 添加问题记录</button>
       <div class="problem-list" id="problem-list"></div>
-      <button class="add-btn" onclick="addProblem()" style="margin-top: 16px;">+ 添加问题记录</button>
     </div>
   </div>
 </div>
@@ -298,20 +298,20 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helv
         <!-- 常用区域 -->
         <div class="resource-section">
           <div class="resource-section-header common"><span class="badge"></span>常用</div>
+          <button class="add-btn" onclick="addResource('common')">+ 添加资源</button>
           <div class="resource-list" id="resource-common-list"></div>
-          <button class="add-btn" onclick="addResource('common')" style="margin-top: 12px;">+ 添加资源</button>
         </div>
         <!-- 待看区域 -->
         <div class="resource-section">
           <div class="resource-section-header toread"><span class="badge"></span>待看</div>
+          <button class="add-btn" onclick="addResource('toread')">+ 添加资源</button>
           <div class="resource-list" id="resource-toread-list"></div>
-          <button class="add-btn" onclick="addResource('toread')" style="margin-top: 12px;">+ 添加资源</button>
         </div>
         <!-- 已看区域 -->
         <div class="resource-section">
           <div class="resource-section-header read"><span class="badge"></span>已看</div>
+          <button class="add-btn" onclick="addResource('read')">+ 添加资源</button>
           <div class="resource-list" id="resource-read-list"></div>
-          <button class="add-btn" onclick="addResource('read')" style="margin-top: 12px;">+ 添加资源</button>
         </div>
       </div>
     </div>
@@ -447,6 +447,14 @@ function renderHome() {
 function renderCareer() {
   const list = document.getElementById('career-list');
   list.innerHTML = '';
+
+  // 添加按钮放在列表上方
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = addCareer;
+  list.appendChild(btn);
+
   homeData.career.forEach((item) => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -457,11 +465,6 @@ function renderCareer() {
     `;
     list.appendChild(card);
   });
-  const btn = document.createElement('button');
-  btn.className = 'add-btn';
-  btn.textContent = '+ 添加';
-  btn.onclick = addCareer;
-  list.appendChild(btn);
 }
 
 function addCareer() {
@@ -490,6 +493,14 @@ function onCareerContent(id, val) {
 function renderTodos() {
   const list = document.getElementById('todo-list');
   list.innerHTML = '';
+
+  // 添加按钮放在列表上方
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = addTodo;
+  list.appendChild(btn);
+
   homeData.todos.forEach((item) => {
     const div = document.createElement('div');
     div.className = `todo-item ${item.expanded ? 'expanded' : ''}`;
@@ -534,11 +545,6 @@ function renderTodos() {
       div.appendChild(subtasksSection);
     }
   });
-  const btn = document.createElement('button');
-  btn.className = 'add-btn';
-  btn.textContent = '+ 添加';
-  btn.onclick = addTodo;
-  list.appendChild(btn);
 }
 
 function renderSubtasksList(container, todoItem) {
@@ -658,6 +664,14 @@ function onTodoContent(id, el) {
 function renderDiaries() {
   const list = document.getElementById('diary-list');
   list.innerHTML = '';
+
+  // 添加按钮放在列表上方
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = addDiary;
+  list.appendChild(btn);
+
   homeData.diaries.forEach((item) => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -672,11 +686,6 @@ function renderDiaries() {
     `;
     list.appendChild(card);
   });
-  const btn = document.createElement('button');
-  btn.className = 'add-btn';
-  btn.textContent = '+ 添加';
-  btn.onclick = addDiary;
-  list.appendChild(btn);
 }
 
 function addDiary() {
@@ -1075,6 +1084,14 @@ function renderProjectContent() {
 function renderMilestones(project) {
   const list = document.getElementById('milestone-list');
   list.innerHTML = '';
+
+  // 添加按钮放在列表上方
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = () => { project.milestones.push({ id: uid(), time: '', content: '' }); renderMilestones(project); saveProjects(); };
+  list.appendChild(btn);
+
   project.milestones.forEach(m => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -1085,11 +1102,6 @@ function renderMilestones(project) {
     `;
     list.appendChild(card);
   });
-  const btn = document.createElement('button');
-  btn.className = 'add-btn';
-  btn.textContent = '+ 添加';
-  btn.onclick = () => { project.milestones.push({ id: uid(), time: '', content: '' }); renderMilestones(project); saveProjects(); };
-  list.appendChild(btn);
 }
 
 function deleteMilestone(pid, mid) {
@@ -1113,6 +1125,14 @@ function onMilestoneContent(pid, mid, el) {
 function renderDevlogs(project) {
   const list = document.getElementById('devlog-list');
   list.innerHTML = '';
+
+  // 添加按钮放在列表上方
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = () => { project.devlogs.unshift({ id: uid(), time: '', content: '', images: [] }); renderDevlogs(project); saveProjects(); };
+  list.appendChild(btn);
+
   project.devlogs.forEach(d => {
     const card = document.createElement('div');
     card.className = 'card';
@@ -1136,11 +1156,6 @@ function renderDevlogs(project) {
     `;
     list.appendChild(card);
   });
-  const btn = document.createElement('button');
-  btn.className = 'add-btn';
-  btn.textContent = '+ 添加';
-  btn.onclick = () => { project.devlogs.unshift({ id: uid(), time: '', content: '', images: [] }); renderDevlogs(project); saveProjects(); };
-  list.appendChild(btn);
 }
 
 function deleteDevlog(pid, did) {
@@ -1190,6 +1205,14 @@ function deleteDevlogImage(pid, did, idx) {
 function renderIssues(project) {
   const list = document.getElementById('issue-list');
   list.innerHTML = '';
+
+  // 添加按钮放在列表上方
+  const btn = document.createElement('button');
+  btn.className = 'add-btn';
+  btn.textContent = '+ 添加';
+  btn.onclick = () => { project.issues.push({ id: uid(), content: '', done: false }); renderIssues(project); saveProjects(); };
+  list.appendChild(btn);
+
   project.issues.forEach(i => {
     const div = document.createElement('div');
     div.className = 'todo-item';
@@ -1200,11 +1223,6 @@ function renderIssues(project) {
     `;
     list.appendChild(div);
   });
-  const btn = document.createElement('button');
-  btn.className = 'add-btn';
-  btn.textContent = '+ 添加';
-  btn.onclick = () => { project.issues.push({ id: uid(), content: '', done: false }); renderIssues(project); saveProjects(); };
-  list.appendChild(btn);
 }
 
 function deleteIssue(pid, iid) {
